@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Off_Track
   - On_Track
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -13,8 +14,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - Track
+  - Tower
   - 
   - 
   - 
