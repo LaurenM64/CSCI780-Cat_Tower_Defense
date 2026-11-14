@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class TowerPlacement : MonoBehaviour
 {
@@ -67,7 +68,12 @@ public class TowerPlacement : MonoBehaviour
     public void SelectTower(int index)
     {
         if (wave.State != EnemySpawner.WaveState.PreWave) return;
-        if (IsOfferLocked(index) || AtTowerLimit) { CancelPurchase(); return; }
+        if (IsOfferLocked(index) || AtTowerLimit) 
+        { 
+            if (AtTowerLimit) wave.StartCoroutine(wave.FlashCenterMessage("MAX TOWERS FOR THIS ROUND!", 1.5f));
+            CancelPurchase(); 
+            return; 
+        }
         if (wave.Coins < offers[index].cost) { CancelPurchase(); FlashUnaffordable(index); return; }
         if (index == 0) SetMode(currentMode == BuildMode.BuildSprigatito ? BuildMode.None : BuildMode.BuildSprigatito);
         else CancelPurchase();
@@ -89,7 +95,13 @@ public class TowerPlacement : MonoBehaviour
     public bool TryPlaceTower(Vector3 position)
     {
         if (wave.State != EnemySpawner.WaveState.PreWave || currentMode != BuildMode.BuildSprigatito) return false;
-        if (AtTowerLimit || !HasPlacementClearance(position)) return false;
+        if (AtTowerLimit || !HasPlacementClearance(position)) 
+        { 
+            if (AtTowerLimit) wave.StartCoroutine(wave.FlashCenterMessage("MAX TOWERS FOR THIS ROUND!", 1.5f));
+            return false; 
+        }
+
+
         if (!wave.TrySpendCoins(offers[0].cost)) { FlashUnaffordable(0); CancelPurchase(); return false; }
         var tower = Instantiate(sprigatitoPrefab, position, Quaternion.identity);
         var purchase = tower.AddComponent<TowerPurchase>();
@@ -127,6 +139,7 @@ public class TowerPlacement : MonoBehaviour
         rangePreview.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         rangePreview.receiveShadows = false;
         currentPreview.SetActive(false);
+        removeButton.gameObject.SetActive(false);
     }
     void OnDestroy()
     {
@@ -135,14 +148,31 @@ public class TowerPlacement : MonoBehaviour
     }
     public void ToggleSprigatitoMode() { SelectTower(0); }
     public void ToggleRemoveMode() { CancelPurchase(); }
-    void SetMode(BuildMode newMode)
+   
+   
+    private void SetMode(BuildMode newMode)
     {
         currentMode = newMode;
-        if (newMode != BuildMode.None && detailsPanel != null) detailsPanel.Close();
-        sprigatitoButton.color = currentMode == BuildMode.BuildSprigatito ? highlightColor : defaultColor;
-        removeButton.color = defaultColor;
-        if (currentMode == BuildMode.None && currentPreview != null) currentPreview.SetActive(false);
+        
+        // Highlight active build button
+        sprigatitoButton.color = (currentMode == BuildMode.BuildSprigatito) ? highlightColor : defaultColor;
+        
+        if (currentMode != BuildMode.None)
+        {
+            // We are building. Turn the Cancel button ON.
+            removeButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            // We are not building. Turn the Cancel button OFF and hide the ghost.
+            removeButton.gameObject.SetActive(false);
+            currentPreview.SetActive(false);
+        }
     }
+
+
+
+
     void LateUpdate()
     {
         if (pokemonLabel == null) return;

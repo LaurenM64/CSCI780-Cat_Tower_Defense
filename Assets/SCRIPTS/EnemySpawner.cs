@@ -16,6 +16,8 @@ public class EnemySpawner : MonoBehaviour
     public TMP_Text coinLabel;
     public UnityEngine.RectTransform buyButtonRect;
 
+    public TMP_Text centerMessageText;
+
     public void AddCoins(int amount)
     {
         if (amount <= 0) return;
@@ -78,6 +80,7 @@ public class EnemySpawner : MonoBehaviour
         FindAnyObjectByType<TowerPlacement>()?.CancelPurchase();
         UpdateUI();
         StartCoroutine(SpawnWave());
+        statusLabel.text = "DEFEND PHASE";
     }
 
     IEnumerator SpawnWave()
@@ -99,15 +102,22 @@ public class EnemySpawner : MonoBehaviour
 
     void Update()
     {
-        if (State != WaveState.Running) return;
-        enemies.RemoveAll(enemy => enemy == null);
-        if (SpawnedCount == 25 && enemies.Count == 0)
-        {
-            State = WaveState.PreWave;
-            Coins += waveOneReward;
-            WaveNumber = 2;
-            UpdateUI();
-        }
+    if (State != WaveState.Running) return;
+
+    enemies.RemoveAll(enemy => enemy == null);
+
+    if (SpawnedCount == 25 && enemies.Count == 0)
+    {
+        // 1. Flash the victory message for the CURRENT wave
+        statusLabel.text = "PLANNING PHASE";
+        StartCoroutine(FlashCenterMessage("WAVE " + WaveNumber + " COMPLETED!", 2.5f));
+
+        // 2. Hasan's transition logic
+        State = WaveState.PreWave;
+        Coins += waveOneReward;
+        WaveNumber = 2;
+        UpdateUI();
+    }
     }
 
     public void Lose()
@@ -137,5 +147,18 @@ public class EnemySpawner : MonoBehaviour
             statusLabel.text = State == WaveState.Lost ? "Game Over" :
                 State == WaveState.Running ? "" :
                 WaveNumber == 1 ? "Place your towers" : "Pre-wave: Wave 2 not implemented";
+                statusLabel.text = "PLANNING PHASE";
     }
+
+
+
+    public IEnumerator FlashCenterMessage(string message, float duration = 2f)
+        {
+            centerMessageText.text = message;
+            centerMessageText.gameObject.SetActive(true);
+            yield return new WaitForSeconds(duration);
+            centerMessageText.gameObject.SetActive(false);
+        }
 }
+
+
