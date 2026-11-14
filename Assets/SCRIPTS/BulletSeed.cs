@@ -3,6 +3,8 @@ using UnityEngine;
 public class BulletSeed : MonoBehaviour
 {
     public float speed = 20f;
+    public int damage = 2;
+    private bool hitEnemy;
 
     public void SetMaximumRange(float distance)
     {
@@ -17,10 +19,10 @@ public class BulletSeed : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Enemy"))
-        {
-            Destroy(other.gameObject); // Pop the Rattata
-            Destroy(gameObject); // Destroy the bullet
-        }
+        var health = other.GetComponentInParent<EnemyHealth>();
+        if (hitEnemy || health == null || health.IsDead || !health.CompareTag("Enemy")) return;
+        hitEnemy = true;
+        health.TakeDamage(damage);
+        Destroy(gameObject);
     }
 }
