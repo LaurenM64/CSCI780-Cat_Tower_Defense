@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2621179793942838558}
   - component: {fileID: 6973174360827263244}
   - component: {fileID: 3777460814696522425}
+  - component: {fileID: 3571793128238867320}
   m_Layer: 7
   m_Name: Sprigatito
   m_TagString: Untagged
@@ -149,5 +150,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fb4235be68634dfda446c801fad51c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerAttack
+  isChainLightning: 0
+  fireRate: 0.67
   bulletPrefab: {fileID: 4422390817231754742, guid: e29db96205b2942ada181d3506c28ff4, type: 3}
-  fireRate: 1
+  bulletSpeed: 20
+  lightningDamage: 2
+  maxChainTargets: 3
+  chainRadius: 4
+  lineRenderer: {fileID: 0}
+--- !u!114 &3571793128238867320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1787842053244011605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 636ee4a060aa2bb41bb01826f7d3ed8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerEvolution
+  pokemonName: Sprigatito
+  nextStagePrefab: {fileID: 779938840908549562, guid: dc981ecffc868cf46bd6e2923d889422, type: 3}
+  evolutionCost: 2

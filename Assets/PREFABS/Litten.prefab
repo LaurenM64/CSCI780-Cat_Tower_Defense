@@ -2312,6 +2312,7 @@ GameObject:
   - component: {fileID: 3275598169059253201}
   - component: {fileID: 3588677945400819645}
   - component: {fileID: 7174159699397058383}
+  - component: {fileID: 815301868168068624}
   m_Layer: 7
   m_Name: Litten
   m_TagString: Untagged
@@ -2435,7 +2436,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 1
+  m_Radius: 3
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &7174159699397058383
 MonoBehaviour:
@@ -2457,6 +2458,21 @@ MonoBehaviour:
   flameSpeed: 0.5
   flames: {fileID: 5010101239868635164}
   fireCone: {fileID: 6987347338514504871}
+--- !u!114 &815301868168068624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3764455812209951307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 636ee4a060aa2bb41bb01826f7d3ed8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerEvolution
+  pokemonName: Litten
+  nextStagePrefab: {fileID: 7665646500315028090, guid: 6092124744e962f498bb5d89912408bd, type: 3}
+  evolutionCost: 3
 --- !u!1 &3863461326795811233
 GameObject:
   m_ObjectHideFlags: 0

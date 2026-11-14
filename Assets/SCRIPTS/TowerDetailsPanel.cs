@@ -2,6 +2,57 @@ using UnityEngine;
 
 public class TowerDetailsPanel : MonoBehaviour
 {
+    private UnityEngine.UI.Button removeTowerButton;
+    public UnityEngine.UI.Button evolveButton;
+    public TMPro.TMP_Text evolveLabel;
+    public GameObject evolveFlash;
+    private Coroutine evolveFlashRoutine;
+
+    public void EvolveSelectedTower()
+    {
+        if (SelectedTower == null || wave.State != EnemySpawner.WaveState.PreWave) return;
+        var evolution = SelectedTower.GetComponent<TowerEvolution>();
+        if (evolution == null || !evolution.CanEvolve) return;
+        if (wave.Coins < evolution.evolutionCost)
+        {
+            if (evolveFlashRoutine != null) StopCoroutine(evolveFlashRoutine);
+            evolveFlashRoutine = StartCoroutine(FlashEvolutionCost());
+            return;
+        }
+        FindAnyObjectByType<TowerPlacement>().TryEvolveTower(SelectedTower, out _);
+        RefreshEvolutionButton();
+    }
+
+    System.Collections.IEnumerator FlashEvolutionCost()
+    {
+        evolveFlash.SetActive(true);
+        yield return new WaitForSecondsRealtime(0.2f);
+        evolveFlash.SetActive(false);
+        evolveFlashRoutine = null;
+    }
+
+    void ClearEvolutionFlash()
+    {
+        if (evolveFlashRoutine != null) StopCoroutine(evolveFlashRoutine);
+        evolveFlashRoutine = null;
+        if (evolveFlash != null) evolveFlash.SetActive(false);
+    }
+
+    void RefreshEvolutionButton()
+    {
+        if (removeTowerButton != null)
+            removeTowerButton.interactable = SelectedTower != null && wave.State == EnemySpawner.WaveState.PreWave;
+        if (evolveButton == null || evolveLabel == null) return;
+        var evolution = SelectedTower != null ? SelectedTower.GetComponent<TowerEvolution>() : null;
+        bool available = evolution != null && evolution.CanEvolve;
+        evolveButton.gameObject.SetActive(SelectedTower != null && evolution != null);
+        evolveButton.interactable = available && wave.State == EnemySpawner.WaveState.PreWave;
+        if (!available) { evolveLabel.text = "Fully evolved"; return; }
+        var next = evolution.nextStagePrefab.GetComponent<TowerEvolution>();
+        string name = next != null ? next.pokemonName : evolution.nextStagePrefab.name;
+        evolveLabel.text = "Evolve: " + name + "\n(" + evolution.evolutionCost + " Coins)";
+    }
+
     public Material selectionOutlineMaterial;
     private readonly System.Collections.Generic.List<GameObject> outlineObjects = new System.Collections.Generic.List<GameObject>();
 
@@ -16,6 +67,61 @@ public class TowerDetailsPanel : MonoBehaviour
         outlineObjects.Clear();
         outlinedMesh = null;
         outlineLine = null;
+        selectedRange = null;
+    }
+
+    private bool previewEvolutionRange;
+
+    public void SetEvolutionRangePreview(bool preview)
+    {
+        previewEvolutionRange = preview;
+        UpdateSelectedRange();
+    }
+
+    private LineRenderer selectedRange;
+    private Material selectedRangeMaterial;
+
+    void ShowRange(GameObject tower)
+    {
+        if (tower == null || tower.GetComponent<SphereCollider>() == null) return;
+        if (selectedRangeMaterial == null) selectedRangeMaterial = new Material(Shader.Find("Sprites/Default"));
+        var circle = new GameObject("SelectedTowerRange");
+        circle.layer = LayerMask.NameToLayer("Ignore Raycast");
+        selectedRange = circle.AddComponent<LineRenderer>();
+        selectedRange.sharedMaterial = selectedRangeMaterial;
+        selectedRange.useWorldSpace = true;
+        selectedRange.loop = true;
+        selectedRange.positionCount = 96;
+        selectedRange.widthMultiplier = 0.06f;
+        selectedRange.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        selectedRange.receiveShadows = false;
+        var placement = FindAnyObjectByType<TowerPlacement>();
+        Color color = placement != null ? placement.validColor : new Color(0, 1, 0, 0.5f);
+        selectedRange.startColor = selectedRange.endColor = color;
+        outlineObjects.Add(circle);
+        UpdateSelectedRange();
+    }
+
+    void UpdateSelectedRange()
+    {
+        if (selectedRange == null || SelectedTower == null) return;
+        GameObject rangeSource = SelectedTower;
+        var evolution = SelectedTower.GetComponent<TowerEvolution>();
+        if (previewEvolutionRange && evolution != null && evolution.CanEvolve)
+            rangeSource = evolution.nextStagePrefab;
+        var range = rangeSource.GetComponent<SphereCollider>();
+        if (range == null) { selectedRange.enabled = false; return; }
+        selectedRange.enabled = true;
+        Vector3 scale = rangeSource.transform.lossyScale;
+        float radius = range.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
+        Vector3 center = rangeSource == SelectedTower ? SelectedTower.transform.TransformPoint(range.center) :
+            SelectedTower.transform.position + SelectedTower.transform.rotation * Vector3.Scale(range.center, scale);
+        center.y = SelectedTower.transform.position.y + 0.04f;
+        for (int i = 0; i < selectedRange.positionCount; i++)
+        {
+            float angle = i * Mathf.PI * 2f / selectedRange.positionCount;
+            selectedRange.SetPosition(i, center + new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius));
+        }
     }
 
     private MeshFilter outlinedMesh;
@@ -100,12 +206,16 @@ public class TowerDetailsPanel : MonoBehaviour
 
     public void RemoveSelectedTower()
     {
-        if (SelectedTower == null) return;
+        if (SelectedTower == null || wave.State != EnemySpawner.WaveState.PreWave) return;
         var placement = FindAnyObjectByType<TowerPlacement>();
         if (placement != null && placement.SellTower(SelectedTower)) Close();
     }
 
-    void OnDestroy() { ClearOutline(); }
+    void OnDestroy()
+    {
+        ClearOutline();
+        if (selectedRangeMaterial != null) Destroy(selectedRangeMaterial);
+    }
 
     public float slideDuration = 0.25f;
     public GameObject SelectedTower { get; private set; }
@@ -118,20 +228,32 @@ public class TowerDetailsPanel : MonoBehaviour
     {
         panel = GetComponent<RectTransform>();
         wave = FindAnyObjectByType<EnemySpawner>();
+        if (evolveButton != null)
+        {
+            var hover = evolveButton.GetComponent<EvolutionRangeHover>();
+            if (hover == null) hover = evolveButton.gameObject.AddComponent<EvolutionRangeHover>();
+            hover.viewer = this;
+        }
+        removeTowerButton = transform.Find("RemoveSelectedTower").GetComponent<UnityEngine.UI.Button>();
         panel.anchoredPosition = new Vector2(panel.rect.width + 20f, 0f);
     }
 
     public void Show(GameObject tower)
     {
+        ClearEvolutionFlash();
         ClearOutline();
         SelectedTower = tower;
         IsOpen = tower != null;
         OutlineTower(tower);
+        ShowRange(tower);
         transform.SetAsLastSibling();
+        RefreshEvolutionButton();
     }
 
     public void Close()
     {
+        previewEvolutionRange = false;
+        ClearEvolutionFlash();
         ClearOutline();
         SelectedTower = null;
         IsOpen = false;
@@ -140,6 +262,7 @@ public class TowerDetailsPanel : MonoBehaviour
     void LateUpdate()
     {
         UpdateOutline();
+        UpdateSelectedRange();
         if (wave == null) return;
         var canvasRect = panel.parent.GetComponent<RectTransform>();
         wave.startButton.GetComponent<RectTransform>().GetWorldCorners(corners);
@@ -154,6 +277,7 @@ public class TowerDetailsPanel : MonoBehaviour
 
     void Update()
     {
+        RefreshEvolutionButton();
         if (IsOpen && SelectedTower == null) Close();
         float width = panel.rect.width + 20f;
         float target = IsOpen ? 0f : width;

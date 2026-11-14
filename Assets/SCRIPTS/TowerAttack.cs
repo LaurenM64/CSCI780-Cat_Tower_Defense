@@ -72,8 +72,15 @@ public class TowerAttack : MonoBehaviour
         // 2. Set the bullet spawn point slightly elevated
         Vector3 spawnPos = transform.position + new Vector3(0, 0.5f, 0);
         
-        // 3. Solve the quadratic equation to find the impact coordinate
-        Vector3 interceptPoint = CalculateInterceptPoint(spawnPos, target.transform.position, enemyVelocity, bulletSpeed);
+        // Piercing leaves must remain above the track after crossing their first target.
+        // Predict on the horizontal firing plane instead of aiming down at the enemy root.
+        Vector3 targetPosition = target.transform.position;
+        if (bulletPrefab.GetComponent<MagicalLeaf>() != null)
+        {
+            targetPosition.y = spawnPos.y;
+            enemyVelocity.y = 0f;
+        }
+        Vector3 interceptPoint = CalculateInterceptPoint(spawnPos, targetPosition, enemyVelocity, bulletSpeed);
         
         // Aim the projectile from its actual muzzle position
         Vector3 direction = interceptPoint - spawnPos;
@@ -81,14 +88,17 @@ public class TowerAttack : MonoBehaviour
         Quaternion shotRotation = Quaternion.LookRotation(direction);
         GameObject bullet = Instantiate(bulletPrefab, spawnPos, shotRotation);
         BulletSeed seed = bullet.GetComponent<BulletSeed>();
-        if (seed != null)
+        MagicalLeaf leaf = bullet.GetComponent<MagicalLeaf>();
+        if (seed != null || leaf != null)
         {
             SphereCollider range = GetComponent<SphereCollider>();
             Vector3 scale = transform.lossyScale;
             float radius = range.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
             float initialDistance = radius + Vector3.Distance(spawnPos, transform.TransformPoint(range.center));
-            float maximumTime = initialDistance / Mathf.Max(0.01f, seed.speed - enemyVelocity.magnitude);
-            seed.SetMaximumRange(maximumTime * seed.speed);
+            float projectileSpeed = seed != null ? seed.speed : leaf.speed;
+            float maximumTime = initialDistance / Mathf.Max(0.01f, projectileSpeed - enemyVelocity.magnitude);
+            if (seed != null) seed.SetMaximumRange(maximumTime * projectileSpeed);
+            else leaf.SetMaximumRange(maximumTime * projectileSpeed);
         }
     }
 

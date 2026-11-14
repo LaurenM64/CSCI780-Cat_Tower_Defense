@@ -42,8 +42,8 @@ public class TowerPlacement : MonoBehaviour
     public GameObject littenPrefab;
 
     public GameObject shinxPrefab;
-    private int SelectedOfferIndex => currentMode == BuildMode.BuildLitten ? 1 : 0;
-    private GameObject SelectedPrefab => currentMode == BuildMode.BuildLitten ? littenPrefab : sprigatitoPrefab;
+    private int SelectedOfferIndex => currentMode == BuildMode.BuildShinx ? 2 : currentMode == BuildMode.BuildLitten ? 1 : 0;
+    private GameObject SelectedPrefab => currentMode == BuildMode.BuildShinx ? shinxPrefab : currentMode == BuildMode.BuildLitten ? littenPrefab : sprigatitoPrefab;
     public Camera mainCamera;
     public LayerMask blockingLayers;
     [Header("Preview Settings")]
@@ -127,8 +127,33 @@ public class TowerPlacement : MonoBehaviour
         CancelPurchase();
         return true;
     }
+    public bool TryEvolveTower(GameObject tower, out GameObject evolvedTower)
+    {
+        evolvedTower = null;
+        if (tower == null || !tower.activeInHierarchy || wave.State != EnemySpawner.WaveState.PreWave) return false;
+        var evolution = tower.GetComponent<TowerEvolution>();
+        var purchase = tower.GetComponent<TowerPurchase>();
+        if (evolution == null || !evolution.CanEvolve || purchase == null || purchase.Sold) return false;
+        if (wave.Coins < evolution.evolutionCost) return false;
+        var replacement = Instantiate(evolution.nextStagePrefab, tower.transform.position, tower.transform.rotation);
+        var replacementPurchase = replacement.GetComponent<TowerPurchase>();
+        if (replacementPurchase == null) replacementPurchase = replacement.AddComponent<TowerPurchase>();
+        replacementPurchase.purchasePrice = purchase.purchasePrice;
+        replacementPurchase.evolutionSpend = purchase.evolutionSpend + evolution.evolutionCost;
+        if (!wave.TrySpendCoins(evolution.evolutionCost)) { Destroy(replacement); return false; }
+        int index = placedTowers.IndexOf(tower);
+        if (index >= 0) placedTowers[index] = replacement;
+        else placedTowers.Add(replacement);
+        tower.SetActive(false);
+        evolvedTower = replacement;
+        if (detailsPanel != null && detailsPanel.SelectedTower == tower) detailsPanel.Show(replacement);
+        Destroy(tower);
+        return true;
+    }
+
     public bool SellTower(GameObject tower)
     {
+        if (tower == null || wave.State != EnemySpawner.WaveState.PreWave) return false;
         var purchase = tower.GetComponent<TowerPurchase>();
         if (purchase == null || !purchase.TrySell(wave)) return false;
         placedTowers.Remove(tower);
@@ -172,7 +197,7 @@ public class TowerPlacement : MonoBehaviour
         currentMode = newMode;
         
         // Highlight the selected tower's buy button.
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
             offers[i].button.color = currentMode != BuildMode.None && SelectedOfferIndex == i ? highlightColor : defaultColor;
         if (currentMode != BuildMode.None && detailsPanel != null) detailsPanel.Close();
         
