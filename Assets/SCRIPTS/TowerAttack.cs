@@ -1,15 +1,25 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Splines;
 
 public class TowerAttack : MonoBehaviour
 {
-    public GameObject bulletPrefab;
+    [Header("General Attack Settings")]
+    public bool isChainLightning = false; // Check this ONLY on the Shinx prefab!
     public float fireRate = 1f; 
-    public float bulletSpeed = 20f; // CRITICAL: This must match the speed on your BulletSeed script!
     private float fireCountdown = 0f;
-
     private List<GameObject> enemiesInRange = new List<GameObject>();
+
+    [Header("Projectile Settings (Sprigatito)")]
+    public GameObject bulletPrefab;
+    public float bulletSpeed = 20f; 
+
+    [Header("Chain Lightning Settings (Shinx)")]
+    public int lightningDamage = 2;
+    public int maxChainTargets = 3;
+    public float chainRadius = 4f;
+    public LineRenderer lineRenderer;
 
     void Update()
     {
@@ -20,12 +30,20 @@ public class TowerAttack : MonoBehaviour
             fireCountdown -= Time.deltaTime;
             if (fireCountdown <= 0f)
             {
-                Shoot(GetTargetClosestToGoal());
+                if (isChainLightning)
+                {
+                    FireChainLightning();
+                }
+                else
+                {
+                    Shoot(GetTargetClosestToGoal());
+                }
                 fireCountdown = 1f / fireRate;
             }
         }
     }
 
+    // --- SPRIGATITO PROJECTILE LOGIC ---
     GameObject GetTargetClosestToGoal()
     {
         GameObject bestTarget = null;
@@ -57,7 +75,7 @@ public class TowerAttack : MonoBehaviour
         // 3. Solve the quadratic equation to find the impact coordinate
         Vector3 interceptPoint = CalculateInterceptPoint(spawnPos, target.transform.position, enemyVelocity, bulletSpeed);
         
-        // Aim the projectile from its actual muzzle position; keep the tower and collider upright.
+        // Aim the projectile from its actual muzzle position
         Vector3 direction = interceptPoint - spawnPos;
         if (direction.sqrMagnitude < 0.000001f) return;
         Quaternion shotRotation = Quaternion.LookRotation(direction);
@@ -68,7 +86,6 @@ public class TowerAttack : MonoBehaviour
             SphereCollider range = GetComponent<SphereCollider>();
             Vector3 scale = transform.lossyScale;
             float radius = range.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
-            // Bound the longest intercept: the target starts at the edge and moves away.
             float initialDistance = radius + Vector3.Distance(spawnPos, transform.TransformPoint(range.center));
             float maximumTime = initialDistance / Mathf.Max(0.01f, seed.speed - enemyVelocity.magnitude);
             seed.SetMaximumRange(maximumTime * seed.speed);
@@ -78,34 +95,88 @@ public class TowerAttack : MonoBehaviour
     Vector3 CalculateInterceptPoint(Vector3 towerPos, Vector3 targetPos, Vector3 targetVelocity, float projectileSpeed)
     {
         Vector3 targetDirection = targetPos - towerPos;
-        
-        // Quadratic equation coefficients (at^2 + bt + c = 0)
         float a = targetVelocity.sqrMagnitude - (projectileSpeed * projectileSpeed);
         float b = 2f * Vector3.Dot(targetVelocity, targetDirection);
         float c = targetDirection.sqrMagnitude;
-
         float discriminant = (b * b) - (4f * a * c);
 
-        // If discriminant is negative, the bullet is too slow to catch the enemy
         if (discriminant < 0f) return targetPos; 
 
-        // Quadratic formula for time (t)
         float t1 = (-b + Mathf.Sqrt(discriminant)) / (2f * a);
         float t2 = (-b - Mathf.Sqrt(discriminant)) / (2f * a);
 
-        // We want the smallest positive time of impact
         float t = -1f;
         if (t1 > 0f && t2 > 0f) t = Mathf.Min(t1, t2);
         else if (t1 > 0f) t = t1;
         else if (t2 > 0f) t = t2;
 
-        // If time is negative, the enemy is moving away faster than the bullet can travel
         if (t < 0f) return targetPos;
-
-        // Future Position = Current Position + (Velocity * Time)
         return targetPos + (targetVelocity * t);
     }
 
+    // --- SHINX CHAIN LIGHTNING LOGIC ---
+    void FireChainLightning()
+    {
+        List<GameObject> hitEnemies = new List<GameObject>();
+        GameObject currentTarget = GetTargetClosestToGoal(); // Uses same priority target logic
+        
+        if (currentTarget == null) return;
+
+        List<Vector3> lightningPoints = new List<Vector3>();
+        lightningPoints.Add(transform.position + new Vector3(0, 0.5f, 0)); // Start at Shinx
+
+        int chainCount = 0;
+
+        while (currentTarget != null && chainCount < maxChainTargets)
+        {
+            hitEnemies.Add(currentTarget);
+            lightningPoints.Add(currentTarget.transform.position);
+
+            EnemyHealth health = currentTarget.GetComponent<EnemyHealth>();
+            if (health != null) health.TakeDamage(lightningDamage);
+
+            chainCount++;
+            currentTarget = GetClosestEnemyToTarget(currentTarget.transform.position, hitEnemies);
+        }
+
+        StartCoroutine(DrawLightning(lightningPoints));
+    }
+
+    GameObject GetClosestEnemyToTarget(Vector3 position, List<GameObject> exclude)
+    {
+        Collider[] hits = Physics.OverlapSphere(position, chainRadius);
+        GameObject closest = null;
+        float minDistance = Mathf.Infinity;
+
+        foreach (Collider hit in hits)
+        {
+            if (hit.CompareTag("Enemy") && !exclude.Contains(hit.gameObject))
+            {
+                float dist = Vector3.Distance(position, hit.transform.position);
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    closest = hit.gameObject;
+                }
+            }
+        }
+        return closest;
+    }
+
+    IEnumerator DrawLightning(List<Vector3> points)
+    {
+        if (lineRenderer == null) yield break;
+        
+        lineRenderer.positionCount = points.Count;
+        lineRenderer.SetPositions(points.ToArray());
+        lineRenderer.enabled = true;
+        
+        yield return new WaitForSeconds(0.1f); 
+        
+        lineRenderer.enabled = false;
+    }
+
+    // --- COMMON DETECTION ---
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Enemy")) enemiesInRange.Add(other.gameObject);

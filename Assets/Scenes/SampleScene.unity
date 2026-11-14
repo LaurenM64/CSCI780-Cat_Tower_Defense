@@ -4178,6 +4178,7 @@ MonoBehaviour:
   currentMode: 0
   sprigatitoPrefab: {fileID: 1787842053244011605, guid: 7e3740d8651054c0f8b6878709d2c12e, type: 3}
   littenPrefab: {fileID: 3764455812209951307, guid: cddf92fb91731c84ca3944779ea36e78, type: 3}
+  shinxPrefab: {fileID: 1787842053244011605, guid: f3bdf27649a384aa5b229fbbbd29313b, type: 3}
   mainCamera: {fileID: 330585545}
   blockingLayers:
     serializedVersion: 2

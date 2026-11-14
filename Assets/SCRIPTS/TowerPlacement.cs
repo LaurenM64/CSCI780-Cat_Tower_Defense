@@ -27,14 +27,21 @@ public class TowerPlacement : MonoBehaviour
     private readonly List<GameObject> placedTowers = new List<GameObject>();
     public int PlacedTowerCount { get { placedTowers.RemoveAll(t => t == null); return placedTowers.Count; } }
     public bool AtTowerLimit => PlacedTowerCount >= CurrentTowerLimit;
-    public bool IsOfferLocked(int index) => wave.WaveNumber == 1 && index >= 2;
+
+    //COMMENTING OUT TEMPORARILY FOR TESTING
+   //public bool IsOfferLocked(int index) => wave.WaveNumber == 1 && index >= 2;
+    public bool IsOfferLocked(int index) => false; 
+
+
     private EnemySpawner wave;
     private readonly Dictionary<int, Coroutine> flashes = new Dictionary<int, Coroutine>();
-    public enum BuildMode { None, BuildSprigatito, BuildLitten }
+    public enum BuildMode { None, BuildSprigatito, BuildLitten,BuildShinx}
     public BuildMode currentMode = BuildMode.None;
     [Header("Prefabs & Settings")]
     public GameObject sprigatitoPrefab;
     public GameObject littenPrefab;
+
+    public GameObject shinxPrefab;
     private int SelectedOfferIndex => currentMode == BuildMode.BuildLitten ? 1 : 0;
     private GameObject SelectedPrefab => currentMode == BuildMode.BuildLitten ? littenPrefab : sprigatitoPrefab;
     public Camera mainCamera;
@@ -71,16 +78,13 @@ public class TowerPlacement : MonoBehaviour
     public void SelectTower(int index)
     {
         if (wave.State != EnemySpawner.WaveState.PreWave) return;
-        if (IsOfferLocked(index) || AtTowerLimit) 
-        { 
-            if (AtTowerLimit) wave.StartCoroutine(wave.FlashCenterMessage("MAX TOWERS FOR THIS ROUND!", 1.5f));
-            CancelPurchase(); 
-            return; 
-        }
+        if (IsOfferLocked(index) || AtTowerLimit) { CancelPurchase(); return; }
         if (wave.Coins < offers[index].cost) { CancelPurchase(); FlashUnaffordable(index); return; }
-        if (index > 1) { CancelPurchase(); return; }
-        BuildMode requested = index == 0 ? BuildMode.BuildSprigatito : BuildMode.BuildLitten;
-        SetMode(currentMode == requested ? BuildMode.None : requested);
+
+        if (index == 0) SetMode(currentMode == BuildMode.BuildSprigatito ? BuildMode.None : BuildMode.BuildSprigatito);
+        else if (index == 1) SetMode(currentMode == BuildMode.BuildLitten ? BuildMode.None : BuildMode.BuildLitten);
+        else if (index == 2) SetMode(currentMode == BuildMode.BuildShinx ? BuildMode.None : BuildMode.BuildShinx);
+        else CancelPurchase();
     }
     void FlashUnaffordable(int index)
     {
@@ -98,19 +102,27 @@ public class TowerPlacement : MonoBehaviour
     public void CancelPurchase() { SetMode(BuildMode.None); }
     public bool TryPlaceTower(Vector3 position)
     {
-        if (wave.State != EnemySpawner.WaveState.PreWave || currentMode == BuildMode.None || SelectedPrefab == null) return false;
-        if (AtTowerLimit || !HasPlacementClearance(position)) 
+        if (wave.State != EnemySpawner.WaveState.PreWave || currentMode == BuildMode.None) return false;
+        if (AtTowerLimit || !HasPlacementClearance(position)) return false;
+
+        int cost = 0;
+        GameObject prefabToBuild = null;
+
+        if (currentMode == BuildMode.BuildSprigatito) { cost = offers[0].cost; prefabToBuild = sprigatitoPrefab; }
+        else if (currentMode == BuildMode.BuildLitten) { cost = offers[1].cost; prefabToBuild = littenPrefab; }
+        else if (currentMode == BuildMode.BuildShinx) { cost = offers[2].cost; prefabToBuild = shinxPrefab; }
+
+        if (!wave.TrySpendCoins(cost)) 
         { 
-            if (AtTowerLimit) wave.StartCoroutine(wave.FlashCenterMessage("MAX TOWERS FOR THIS ROUND!", 1.5f));
+            FlashUnaffordable(currentMode == BuildMode.BuildSprigatito ? 0 : (currentMode == BuildMode.BuildLitten ? 1 : 2)); 
+            CancelPurchase(); 
             return false; 
         }
 
-
-        int index = SelectedOfferIndex;
-        if (!wave.TrySpendCoins(offers[index].cost)) { FlashUnaffordable(index); CancelPurchase(); return false; }
-        var tower = Instantiate(SelectedPrefab, position, Quaternion.identity);
+        var tower = Instantiate(prefabToBuild, position, Quaternion.identity);
         var purchase = tower.AddComponent<TowerPurchase>();
-        purchase.purchasePrice = offers[index].cost;
+        purchase.purchasePrice = cost;
+
         placedTowers.Add(tower);
         CancelPurchase();
         return true;
@@ -212,16 +224,28 @@ public class TowerPlacement : MonoBehaviour
             bool canAction = hit.collider.CompareTag("Off_Track") && !AtTowerLimit && HasPlacementClearance(hit.point);
             Color color = canAction ? validColor : invalidColor;
             previewRenderer.material.color = color;
-            var range = SelectedPrefab.GetComponent<SphereCollider>();
-            var scale = SelectedPrefab.transform.lossyScale;
-            float radius = range.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
-            rangePreview.startColor = rangePreview.endColor = color;
+
+            GameObject activePrefab = null;
+            if (currentMode == BuildMode.BuildSprigatito) activePrefab = sprigatitoPrefab;
+            else if (currentMode == BuildMode.BuildLitten) activePrefab = littenPrefab;
+            else if (currentMode == BuildMode.BuildShinx) activePrefab = shinxPrefab;
+
+            if (activePrefab != null)
+            {
+                var range = activePrefab.GetComponent<SphereCollider>();
+                var scale = activePrefab.transform.lossyScale;
+                float radius = range.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
+                rangePreview.startColor = rangePreview.endColor = color;            
+            
+
+            
             for (int i = 0; i < rangePreview.positionCount; i++)
             {
                 float angle = i * Mathf.PI * 2f / rangePreview.positionCount;
                 rangePreview.SetPosition(i, hit.point + new Vector3(Mathf.Cos(angle) * radius, 0.04f, Mathf.Sin(angle) * radius));
             }
             if (Input.GetMouseButtonDown(0) && canAction) TryPlaceTower(hit.point);
+            }
         }
     }
 }
