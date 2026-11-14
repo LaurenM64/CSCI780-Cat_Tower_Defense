@@ -57,9 +57,22 @@ public class TowerAttack : MonoBehaviour
         // 3. Solve the quadratic equation to find the impact coordinate
         Vector3 interceptPoint = CalculateInterceptPoint(spawnPos, target.transform.position, enemyVelocity, bulletSpeed);
         
-        // 4. Look at the future coordinate and fire
-        transform.LookAt(interceptPoint);
-        Instantiate(bulletPrefab, spawnPos, transform.rotation);
+        // Aim the projectile from its actual muzzle position; keep the tower and collider upright.
+        Vector3 direction = interceptPoint - spawnPos;
+        if (direction.sqrMagnitude < 0.000001f) return;
+        Quaternion shotRotation = Quaternion.LookRotation(direction);
+        GameObject bullet = Instantiate(bulletPrefab, spawnPos, shotRotation);
+        BulletSeed seed = bullet.GetComponent<BulletSeed>();
+        if (seed != null)
+        {
+            SphereCollider range = GetComponent<SphereCollider>();
+            Vector3 scale = transform.lossyScale;
+            float radius = range.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
+            // Bound the longest intercept: the target starts at the edge and moves away.
+            float initialDistance = radius + Vector3.Distance(spawnPos, transform.TransformPoint(range.center));
+            float maximumTime = initialDistance / Mathf.Max(0.01f, seed.speed - enemyVelocity.magnitude);
+            seed.SetMaximumRange(maximumTime * seed.speed);
+        }
     }
 
     Vector3 CalculateInterceptPoint(Vector3 towerPos, Vector3 targetPos, Vector3 targetVelocity, float projectileSpeed)
