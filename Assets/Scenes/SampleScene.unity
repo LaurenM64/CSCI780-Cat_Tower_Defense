@@ -3985,7 +3985,7 @@ MonoBehaviour:
   waveOneReward: 10
   coinLabel: {fileID: 2055219873}
   buyButtonRect: {fileID: 1548755493}
-  centerMessageText: {fileID: 306983894}
+  centerMessageText: {fileID: 0}
   startButton: {fileID: 1651677016}
   waveLabel: {fileID: 1237319224}
   statusLabel: {fileID: 182100060}
@@ -4177,6 +4177,7 @@ MonoBehaviour:
   modelFootprintRadius: 0.5
   currentMode: 0
   sprigatitoPrefab: {fileID: 1787842053244011605, guid: 7e3740d8651054c0f8b6878709d2c12e, type: 3}
+  littenPrefab: {fileID: 3764455812209951307, guid: cddf92fb91731c84ca3944779ea36e78, type: 3}
   mainCamera: {fileID: 330585545}
   blockingLayers:
     serializedVersion: 2

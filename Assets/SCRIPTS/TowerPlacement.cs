@@ -30,10 +30,13 @@ public class TowerPlacement : MonoBehaviour
     public bool IsOfferLocked(int index) => wave.WaveNumber == 1 && index >= 2;
     private EnemySpawner wave;
     private readonly Dictionary<int, Coroutine> flashes = new Dictionary<int, Coroutine>();
-    public enum BuildMode { None, BuildSprigatito }
+    public enum BuildMode { None, BuildSprigatito, BuildLitten }
     public BuildMode currentMode = BuildMode.None;
     [Header("Prefabs & Settings")]
     public GameObject sprigatitoPrefab;
+    public GameObject littenPrefab;
+    private int SelectedOfferIndex => currentMode == BuildMode.BuildLitten ? 1 : 0;
+    private GameObject SelectedPrefab => currentMode == BuildMode.BuildLitten ? littenPrefab : sprigatitoPrefab;
     public Camera mainCamera;
     public LayerMask blockingLayers;
     [Header("Preview Settings")]
@@ -75,8 +78,9 @@ public class TowerPlacement : MonoBehaviour
             return; 
         }
         if (wave.Coins < offers[index].cost) { CancelPurchase(); FlashUnaffordable(index); return; }
-        if (index == 0) SetMode(currentMode == BuildMode.BuildSprigatito ? BuildMode.None : BuildMode.BuildSprigatito);
-        else CancelPurchase();
+        if (index > 1) { CancelPurchase(); return; }
+        BuildMode requested = index == 0 ? BuildMode.BuildSprigatito : BuildMode.BuildLitten;
+        SetMode(currentMode == requested ? BuildMode.None : requested);
     }
     void FlashUnaffordable(int index)
     {
@@ -94,7 +98,7 @@ public class TowerPlacement : MonoBehaviour
     public void CancelPurchase() { SetMode(BuildMode.None); }
     public bool TryPlaceTower(Vector3 position)
     {
-        if (wave.State != EnemySpawner.WaveState.PreWave || currentMode != BuildMode.BuildSprigatito) return false;
+        if (wave.State != EnemySpawner.WaveState.PreWave || currentMode == BuildMode.None || SelectedPrefab == null) return false;
         if (AtTowerLimit || !HasPlacementClearance(position)) 
         { 
             if (AtTowerLimit) wave.StartCoroutine(wave.FlashCenterMessage("MAX TOWERS FOR THIS ROUND!", 1.5f));
@@ -102,10 +106,11 @@ public class TowerPlacement : MonoBehaviour
         }
 
 
-        if (!wave.TrySpendCoins(offers[0].cost)) { FlashUnaffordable(0); CancelPurchase(); return false; }
-        var tower = Instantiate(sprigatitoPrefab, position, Quaternion.identity);
+        int index = SelectedOfferIndex;
+        if (!wave.TrySpendCoins(offers[index].cost)) { FlashUnaffordable(index); CancelPurchase(); return false; }
+        var tower = Instantiate(SelectedPrefab, position, Quaternion.identity);
         var purchase = tower.AddComponent<TowerPurchase>();
-        purchase.purchasePrice = offers[0].cost;
+        purchase.purchasePrice = offers[index].cost;
         placedTowers.Add(tower);
         CancelPurchase();
         return true;
@@ -154,8 +159,10 @@ public class TowerPlacement : MonoBehaviour
     {
         currentMode = newMode;
         
-        // Highlight active build button
-        sprigatitoButton.color = (currentMode == BuildMode.BuildSprigatito) ? highlightColor : defaultColor;
+        // Highlight the selected tower's buy button.
+        for (int i = 0; i < 2; i++)
+            offers[i].button.color = currentMode != BuildMode.None && SelectedOfferIndex == i ? highlightColor : defaultColor;
+        if (currentMode != BuildMode.None && detailsPanel != null) detailsPanel.Close();
         
         if (currentMode != BuildMode.None)
         {
@@ -186,7 +193,7 @@ public class TowerPlacement : MonoBehaviour
     void Update()
     {
         RefreshOfferLocks();
-        if (wave.State != EnemySpawner.WaveState.PreWave && currentMode == BuildMode.BuildSprigatito) CancelPurchase();
+        if (wave.State != EnemySpawner.WaveState.PreWave && currentMode != BuildMode.None) CancelPurchase();
         if (currentMode == BuildMode.None && !EventSystem.current.IsPointerOverGameObject() && Input.GetMouseButtonDown(0))
         {
             Ray selectionRay = mainCamera.ScreenPointToRay(Input.mousePosition);
@@ -199,14 +206,14 @@ public class TowerPlacement : MonoBehaviour
         if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) { currentPreview.SetActive(false); return; }
         currentPreview.SetActive(true);
         currentPreview.transform.position = hit.point;
-        rangePreview.enabled = currentMode == BuildMode.BuildSprigatito;
-        if (currentMode == BuildMode.BuildSprigatito)
+        rangePreview.enabled = currentMode != BuildMode.None;
+        if (currentMode != BuildMode.None)
         {
             bool canAction = hit.collider.CompareTag("Off_Track") && !AtTowerLimit && HasPlacementClearance(hit.point);
             Color color = canAction ? validColor : invalidColor;
             previewRenderer.material.color = color;
-            var range = sprigatitoPrefab.GetComponent<SphereCollider>();
-            var scale = sprigatitoPrefab.transform.lossyScale;
+            var range = SelectedPrefab.GetComponent<SphereCollider>();
+            var scale = SelectedPrefab.transform.lossyScale;
             float radius = range.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
             rangePreview.startColor = rangePreview.endColor = color;
             for (int i = 0; i < rangePreview.positionCount; i++)
