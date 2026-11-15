@@ -156,7 +156,7 @@ MonoBehaviour:
   bulletSpeed: 20
   lightningDamage: 2
   maxChainTargets: 3
-  chainRadius: 4
+  chainRadius: 2
   lineRenderer: {fileID: 3791391485089223507}
 --- !u!120 &3791391485089223507
 LineRenderer:

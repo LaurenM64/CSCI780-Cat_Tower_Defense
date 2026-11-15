@@ -8,6 +8,8 @@ public class EnemySpawner : MonoBehaviour
 {
     public enum WaveState { PreWave, Running, Lost }
     public GameObject rattataPrefab;
+    public GameObject mausholdPrefab;
+    public GameObject togedemaruPrefab;
     public SplineContainer trackSpline;
     public float spawnRate = 2f;
     public int startingCoins = 5;
@@ -17,6 +19,7 @@ public class EnemySpawner : MonoBehaviour
     public UnityEngine.RectTransform buyButtonRect;
 
     public TMP_Text centerMessageText;
+    public GameObject gameOverOverlay;
 
     public void AddCoins(int amount)
     {
@@ -73,9 +76,13 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
+    private int CurrentWaveSize => WaveNumber == 2 ? 61 : 25;
+    private float CurrentSpawnInterval => WaveNumber == 2 ? 0.33f : spawnRate;
+
     public void StartWave()
     {
-        if (State != WaveState.PreWave || WaveNumber != 1) return;
+        if (State != WaveState.PreWave || WaveNumber > 2) return;
+        SpawnedCount = 0;
         State = WaveState.Running;
         FindAnyObjectByType<TowerPlacement>()?.CancelPurchase();
         UpdateUI();
@@ -83,11 +90,19 @@ public class EnemySpawner : MonoBehaviour
         statusLabel.text = "DEFEND PHASE";
     }
 
+    // Wave 2: (5 Rattata + 1 Maushold) x 10, then Togedemaru.
+    public GameObject PrefabForSpawn(int index)
+    {
+        if (WaveNumber != 2) return rattataPrefab;
+        if (index == 60) return togedemaruPrefab;
+        return index % 6 == 5 ? mausholdPrefab : rattataPrefab;
+    }
+
     IEnumerator SpawnWave()
     {
-        for (int i = 0; i < 25 && State == WaveState.Running; i++)
+        for (int i = 0; i < CurrentWaveSize && State == WaveState.Running; i++)
         {
-            GameObject enemy = Instantiate(rattataPrefab, transform.position, Quaternion.identity);
+            GameObject enemy = Instantiate(PrefabForSpawn(i), transform.position, Quaternion.identity);
             enemies.Add(enemy);
             SpawnedCount++;
             SplineAnimate anim = enemy.GetComponent<SplineAnimate>();
@@ -96,7 +111,9 @@ public class EnemySpawner : MonoBehaviour
                 anim.Container = trackSpline;
                 anim.Restart(true);
             }
-            if (i < 24) yield return new WaitForSeconds(spawnRate);
+            if (i < CurrentWaveSize - 1)
+                yield return new WaitForSeconds(WaveNumber == 2 && i == 59 ? 5f :
+                    WaveNumber == 2 && i % 6 == 5 ? 1f : CurrentSpawnInterval);
         }
     }
 
@@ -106,7 +123,7 @@ public class EnemySpawner : MonoBehaviour
 
     enemies.RemoveAll(enemy => enemy == null);
 
-    if (SpawnedCount == 25 && enemies.Count == 0)
+    if (SpawnedCount == CurrentWaveSize && enemies.Count == 0)
     {
         // 1. Flash the victory message for the CURRENT wave
         statusLabel.text = "PLANNING PHASE";
@@ -114,8 +131,8 @@ public class EnemySpawner : MonoBehaviour
 
         // 2. Hasan's transition logic
         State = WaveState.PreWave;
-        Coins += waveOneReward;
-        WaveNumber = 2;
+        if (WaveNumber == 1) Coins += waveOneReward;
+        WaveNumber++;
         UpdateUI();
     }
     }
@@ -136,18 +153,22 @@ public class EnemySpawner : MonoBehaviour
 
     void UpdateUI()
     {
+        if (gameOverOverlay != null)
+        {
+            gameOverOverlay.SetActive(State == WaveState.Lost);
+            if (State == WaveState.Lost) gameOverOverlay.transform.SetAsLastSibling();
+        }
         if (startButton != null)
         {
             startButton.gameObject.SetActive(State == WaveState.PreWave);
-            startButton.interactable = WaveNumber == 1;
+            startButton.interactable = WaveNumber <= 2;
         }
         if (coinLabel != null) coinLabel.text = "Coins: " + Coins;
         if (waveLabel != null) waveLabel.text = "Wave " + WaveNumber;
         if (statusLabel != null)
             statusLabel.text = State == WaveState.Lost ? "Game Over" :
-                State == WaveState.Running ? "" :
-                WaveNumber == 1 ? "Place your towers" : "Pre-wave: Wave 2 not implemented";
-                statusLabel.text = "PLANNING PHASE";
+                State == WaveState.Running ? "DEFEND PHASE" :
+                WaveNumber <= 2 ? "PLANNING PHASE" : "Pre-wave: Wave 3 not implemented";
     }
 
 

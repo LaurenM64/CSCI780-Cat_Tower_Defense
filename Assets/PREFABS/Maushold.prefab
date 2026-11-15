@@ -1,0 +1,125 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &4113778878420308565
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -3902159441375814664, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: maxHealth
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: -3902159441375814664, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: initialMoveSpeed
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: -3902159441375814664, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: healthGateInterval
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: -3902159441375814664, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: speedPerHealthGate
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -3902159441375814664, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: chainDamageMultiplier
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -3902159441375814664, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: chainBypassesHealthGates
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 371016940595770846, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -4.621922
+      objectReference: {fileID: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.7383447
+      objectReference: {fileID: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.44100967
+      objectReference: {fileID: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.44100967
+      objectReference: {fileID: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.55273
+      objectReference: {fileID: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.55273
+      objectReference: {fileID: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 102.829
+      objectReference: {fileID: 0}
+    - target: {fileID: 2471814983622453365, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5779475613722130179, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_MaxSpeed
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6485102113557469721, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: m_Name
+      value: Maushold
+      objectReference: {fileID: 0}
+    - target: {fileID: 6551366824576640002, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7a2732c4eb5e5774a93add890e4c8acc, type: 2}
+    m_RemovedComponents:
+    - {fileID: 2402436084225497362, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6485102113557469721, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9196340304170577069}
+  m_SourcePrefab: {fileID: 100100000, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+--- !u!1 &6983009460663158860 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6485102113557469721, guid: 2f80a2dcea1ba4369ab78b5b0b08ab70, type: 3}
+  m_PrefabInstance: {fileID: 4113778878420308565}
+  m_PrefabAsset: {fileID: 0}
+--- !u!135 &9196340304170577069
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6983009460663158860}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}

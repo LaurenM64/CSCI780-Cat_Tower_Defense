@@ -2338,7 +2338,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2175838687253438528}
-  m_Mesh: {fileID: 4300000, guid: 40260578ad92b674e80f8f3a3957e9f2, type: 2}
+  m_Mesh: {fileID: 4300000, guid: 369a1a2b5b1a28c4cbfd9025cc6f7082, type: 2}
 --- !u!23 &7420156883694116323
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2527,7 +2527,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 3
+  m_Radius: 4
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3757070384499399976
 MonoBehaviour:
@@ -2541,10 +2541,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f85b879c379ca354a9751668d95b788e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittenAttack
-  detectionRange: 3
-  attackRange: 3
-  coneAngle: 125
-  damage: 1
+  detectionRange: 4
+  attackRange: 4
+  coneAngle: 175.78125
+  damage: 2
   ticksPerSecond: 4
   flameSpeed: 0.5
   flames: {fileID: 4656528084408739771}

@@ -45,7 +45,7 @@ public class MagicalLeaf : MonoBehaviour
     {
         if (hitEnemies.Count >= Mathf.Max(1, maxTargets) || health == null || health.IsDead || !health.CompareTag("Enemy")) return;
         if (!hitEnemies.Add(health)) return;
-        health.TakeDamage(damage);
+        health.TakePiercingDamage(damage);
         // Continue travelling after the first hit; expire after the second distinct enemy.
         if (hitEnemies.Count >= Mathf.Max(1, maxTargets)) Destroy(gameObject);
     }

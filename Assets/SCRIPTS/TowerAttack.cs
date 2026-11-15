@@ -143,7 +143,7 @@ public class TowerAttack : MonoBehaviour
             lightningPoints.Add(currentTarget.transform.position);
 
             EnemyHealth health = currentTarget.GetComponent<EnemyHealth>();
-            if (health != null) health.TakeDamage(lightningDamage);
+            if (health != null) health.TakeChainDamage(lightningDamage);
 
             chainCount++;
             currentTarget = GetClosestEnemyToTarget(currentTarget.transform.position, hitEnemies);
