@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour
 {
+    public enum EnemySpecies { Rattata, Mimikyu, Togedemaru, Maushold, Raticate }
+    public EnemySpecies species;
     [Min(1)] public int maxHealth = 4;
     [Tooltip("Damage stops at each multiple of this HP amount. Zero disables health gates.")]
     [Min(0)] public int healthGateInterval;
@@ -16,7 +18,7 @@ public class EnemyHealth : MonoBehaviour
 
     void Awake() { CurrentHealth = maxHealth; UpdateMovementSpeed(); }
 
-    void UpdateMovementSpeed()
+    public void UpdateMovementSpeed()
     {
         if (initialMoveSpeed <= 0f) return;
         var movement = GetComponent<UnityEngine.Splines.SplineAnimate>();
@@ -24,7 +26,12 @@ public class EnemyHealth : MonoBehaviour
         int crossedGates = healthGateInterval > 0
             ? (maxHealth - 1) / healthGateInterval - Mathf.Max(0, CurrentHealth - 1) / healthGateInterval
             : 0;
-        movement.MaxSpeed = initialMoveSpeed + crossedGates * speedPerHealthGate;
+        var slow = GetComponent<EnemySlow>();
+        float progress = movement.NormalizedTime;
+        float speed = (initialMoveSpeed + crossedGates * speedPerHealthGate)
+            * (slow != null ? slow.SpeedMultiplier : 1f);
+        movement.MaxSpeed = speed;
+        if (speed > 0f) movement.NormalizedTime = progress;
     }
 
     public void TakeChainDamage(int damageAmount)
@@ -41,6 +48,11 @@ public class EnemyHealth : MonoBehaviour
     public void TakePiercingDamage(int damageAmount)
     {
         ApplyDamage(damageAmount, false, true);
+    }
+
+    public void TakeTrueDamage(int damageAmount)
+    {
+        ApplyDamage(damageAmount, true, true);
     }
 
     void ApplyDamage(int damageAmount, bool bypassHealthGates, bool piercing = false)

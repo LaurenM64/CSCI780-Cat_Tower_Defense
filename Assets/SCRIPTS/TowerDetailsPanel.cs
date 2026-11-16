@@ -13,6 +13,7 @@ public class TowerDetailsPanel : MonoBehaviour
         if (SelectedTower == null || wave.State != EnemySpawner.WaveState.PreWave) return;
         var evolution = SelectedTower.GetComponent<TowerEvolution>();
         if (evolution == null || !evolution.CanEvolve) return;
+        if (!evolution.IsUnlocked(wave)) return;
         if (wave.Coins < evolution.evolutionCost)
         {
             if (evolveFlashRoutine != null) StopCoroutine(evolveFlashRoutine);
@@ -46,11 +47,12 @@ public class TowerDetailsPanel : MonoBehaviour
         var evolution = SelectedTower != null ? SelectedTower.GetComponent<TowerEvolution>() : null;
         bool available = evolution != null && evolution.CanEvolve;
         evolveButton.gameObject.SetActive(SelectedTower != null && evolution != null);
-        evolveButton.interactable = available && wave.State == EnemySpawner.WaveState.PreWave;
+        evolveButton.interactable = available && evolution.IsUnlocked(wave) && wave.State == EnemySpawner.WaveState.PreWave;
         if (!available) { evolveLabel.text = "Fully evolved"; return; }
         var next = evolution.nextStagePrefab.GetComponent<TowerEvolution>();
         string name = next != null ? next.pokemonName : evolution.nextStagePrefab.name;
         evolveLabel.text = "Evolve: " + name + "\n(" + evolution.evolutionCost + " Coins)";
+        if (!evolution.IsUnlocked(wave)) evolveLabel.text += "\nAfter Wave " + (evolution.earliestWave - 1);
     }
 
     public Material selectionOutlineMaterial;
@@ -65,8 +67,6 @@ public class TowerDetailsPanel : MonoBehaviour
             Destroy(outline);
         }
         outlineObjects.Clear();
-        outlinedMesh = null;
-        outlineLine = null;
         selectedRange = null;
     }
 
@@ -124,84 +124,44 @@ public class TowerDetailsPanel : MonoBehaviour
         }
     }
 
-    private MeshFilter outlinedMesh;
-    private LineRenderer outlineLine;
-    public float outlineWidthPixels = 2f;
-
-    void OutlineTower(GameObject tower)
+    void HighlightFootprint(GameObject tower)
     {
         if (tower == null || selectionOutlineMaterial == null) return;
-        outlinedMesh = tower.GetComponentInChildren<MeshFilter>();
-        if (outlinedMesh == null || outlinedMesh.sharedMesh == null) return;
-        var outline = new GameObject("SelectionOutline");
-        outline.layer = LayerMask.NameToLayer("Ignore Raycast");
-        outlineLine = outline.AddComponent<LineRenderer>();
-        outlineLine.sharedMaterial = selectionOutlineMaterial;
-        outlineLine.useWorldSpace = true;
-        outlineLine.loop = true;
-        outlineLine.startColor = outlineLine.endColor = Color.white;
-        outlineLine.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        outlineLine.receiveShadows = false;
-        outlineObjects.Add(outline);
-        UpdateOutline();
-    }
-
-    static float Cross(Vector2 a, Vector2 b, Vector2 c)
-    {
-        return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
-    }
-
-    void UpdateOutline()
-    {
-        if (outlinedMesh == null || outlineLine == null || !IsOpen) return;
-        var camera = Camera.main;
-        if (camera == null) return;
-        var points = new System.Collections.Generic.List<Vector2>();
-        // Clip the outline to the ground so buried model geometry does not create a floating contour.
-        var vertices = outlinedMesh.sharedMesh.vertices;
-        var triangles = outlinedMesh.sharedMesh.triangles;
-        float ground = SelectedTower.transform.position.y;
-        var worldVertices = new Vector3[vertices.Length];
-        for (int i = 0; i < vertices.Length; i++) worldVertices[i] = outlinedMesh.transform.TransformPoint(vertices[i]);
-        var visiblePoints = new System.Collections.Generic.List<Vector3>();
-        foreach (var vertex in worldVertices) if (vertex.y >= ground) visiblePoints.Add(vertex);
-        for (int i = 0; i < triangles.Length; i += 3)
+        var footprint = tower.transform.Find("PlacementFootprint");
+        var placement = FindAnyObjectByType<TowerPlacement>();
+        float radius = placement != null ? placement.modelFootprintRadius : 0.5f;
+        Vector3 center = Vector3.up * 0.04f;
+        if (footprint != null)
         {
-            for (int edge = 0; edge < 3; edge++)
+            center = footprint.localPosition + Vector3.up * 0.015f;
+            var mesh = footprint.GetComponent<MeshFilter>();
+            if (mesh != null && mesh.sharedMesh != null)
             {
-                Vector3 a = worldVertices[triangles[i + edge]];
-                Vector3 b = worldVertices[triangles[i + (edge + 1) % 3]];
-                if ((a.y < ground) == (b.y < ground)) continue;
-                visiblePoints.Add(Vector3.Lerp(a, b, (ground - a.y) / (b.y - a.y)));
+                var bounds = mesh.sharedMesh.bounds;
+                radius = Mathf.Max(bounds.extents.x * Mathf.Abs(footprint.localScale.x),
+                    bounds.extents.z * Mathf.Abs(footprint.localScale.z));
+                center += Vector3.Scale(bounds.center, footprint.localScale);
             }
         }
-        foreach (var vertex in visiblePoints)
+        var ring = new GameObject("SelectionOutline");
+        ring.layer = LayerMask.NameToLayer("Ignore Raycast");
+        ring.transform.SetParent(tower.transform, false);
+        ring.transform.localPosition = center;
+        var line = ring.AddComponent<LineRenderer>();
+        line.sharedMaterial = selectionOutlineMaterial;
+        line.useWorldSpace = false;
+        line.loop = true;
+        line.positionCount = 64;
+        line.widthMultiplier = 0.025f;
+        line.startColor = line.endColor = Color.white;
+        line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        line.receiveShadows = false;
+        for (int i = 0; i < line.positionCount; i++)
         {
-            Vector3 point = camera.WorldToScreenPoint(vertex);
-            if (point.z <= camera.nearClipPlane) { outlineLine.enabled = false; return; }
-            points.Add(new Vector2(point.x, point.y));
+            float angle = i * Mathf.PI * 2f / line.positionCount;
+            line.SetPosition(i, new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius));
         }
-        points.Sort((a,b)=>a.x == b.x ? a.y.CompareTo(b.y) : a.x.CompareTo(b.x));
-        var hull = new System.Collections.Generic.List<Vector2>();
-        foreach (var point in points)
-        {
-            while (hull.Count >= 2 && Cross(hull[hull.Count-2],hull[hull.Count-1],point) <= 0) hull.RemoveAt(hull.Count-1);
-            hull.Add(point);
-        }
-        int lower = hull.Count;
-        for (int i=points.Count-2;i>=0;i--)
-        {
-            while (hull.Count > lower && Cross(hull[hull.Count-2],hull[hull.Count-1],points[i]) <= 0) hull.RemoveAt(hull.Count-1);
-            hull.Add(points[i]);
-        }
-        if (hull.Count < 4) { outlineLine.enabled = false; return; }
-        hull.RemoveAt(hull.Count-1);
-        float depth = camera.nearClipPlane + 1f;
-        outlineLine.enabled = true;
-        outlineLine.positionCount = hull.Count;
-        for(int i=0;i<hull.Count;i++) outlineLine.SetPosition(i,camera.ScreenToWorldPoint(new Vector3(hull[i].x,hull[i].y,depth)));
-        outlineLine.widthMultiplier = Vector3.Distance(camera.ScreenToWorldPoint(new Vector3(0,0,depth)),
-            camera.ScreenToWorldPoint(new Vector3(outlineWidthPixels,0,depth)));
+        outlineObjects.Add(ring);
     }
 
     public void RemoveSelectedTower()
@@ -244,7 +204,7 @@ public class TowerDetailsPanel : MonoBehaviour
         ClearOutline();
         SelectedTower = tower;
         IsOpen = tower != null;
-        OutlineTower(tower);
+        HighlightFootprint(tower);
         ShowRange(tower);
         transform.SetAsLastSibling();
         RefreshEvolutionButton();
@@ -261,7 +221,6 @@ public class TowerDetailsPanel : MonoBehaviour
 
     void LateUpdate()
     {
-        UpdateOutline();
         UpdateSelectedRange();
         if (wave == null) return;
         var canvasRect = panel.parent.GetComponent<RectTransform>();

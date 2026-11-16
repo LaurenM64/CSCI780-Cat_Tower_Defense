@@ -18,12 +18,19 @@ public class TowerAttack : MonoBehaviour
     [Header("Chain Lightning Settings (Shinx)")]
     public int lightningDamage = 2;
     public int maxChainTargets = 3;
+    [Tooltip("Hit every enemy connected by chain jumps, with no target cap.")]
+    public bool unlimitedBranchingChain;
+    public bool paralyzeAllChainTargets;
     public float chainRadius = 4f;
     public LineRenderer lineRenderer;
+    [Min(0f)] public float strongestTargetParalysisDuration;
+    [Min(1)] public int paralysisEveryNAttacks = 1;
+    private int chainAttackCount;
+    public EnemyHealth LastParalyzedTarget { get; private set; }
 
     void Update()
     {
-        enemiesInRange.RemoveAll(item => item == null);
+        enemiesInRange.RemoveAll(item => item == null || !item.activeInHierarchy);
 
         if (enemiesInRange.Count > 0)
         {
@@ -125,7 +132,7 @@ public class TowerAttack : MonoBehaviour
     }
 
     // --- SHINX CHAIN LIGHTNING LOGIC ---
-    void FireChainLightning()
+    public void FireChainLightning()
     {
         List<GameObject> hitEnemies = new List<GameObject>();
         GameObject currentTarget = GetTargetClosestToGoal(); // Uses same priority target logic
@@ -137,7 +144,9 @@ public class TowerAttack : MonoBehaviour
 
         int chainCount = 0;
 
-        while (currentTarget != null && chainCount < maxChainTargets)
+        if (unlimitedBranchingChain)
+            BuildBranchingChain(currentTarget, hitEnemies, lightningPoints);
+        else while (currentTarget != null && chainCount < maxChainTargets)
         {
             hitEnemies.Add(currentTarget);
             lightningPoints.Add(currentTarget.transform.position);
@@ -149,7 +158,85 @@ public class TowerAttack : MonoBehaviour
             currentTarget = GetClosestEnemyToTarget(currentTarget.transform.position, hitEnemies);
         }
 
+        LastParalyzedTarget = null;
+        chainAttackCount++;
+        if (strongestTargetParalysisDuration > 0f && chainAttackCount % Mathf.Max(1, paralysisEveryNAttacks) == 0)
+        {
+            if (paralyzeAllChainTargets)
+            {
+                foreach (var hit in hitEnemies)
+                {
+                    if (hit == null) continue;
+                    var health = hit.GetComponent<EnemyHealth>();
+                    if (health != null && !health.IsDead) ParalyzeTarget(health);
+                }
+            }
+            else
+            {
+            EnemyHealth strongest = null;
+            foreach (var hit in hitEnemies)
+            {
+                if (hit == null) continue;
+                var health = hit.GetComponent<EnemyHealth>();
+                if (health == null || health.IsDead) continue;
+                if (strongest == null || (int)health.species > (int)strongest.species) strongest = health;
+            }
+            if (strongest != null)
+            {
+                ParalyzeTarget(strongest);
+            }
+            }
+        }
         StartCoroutine(DrawLightning(lightningPoints));
+    }
+
+    void ParalyzeTarget(EnemyHealth health)
+    {
+        var slow = health.GetComponent<EnemySlow>();
+        if (slow == null) slow = health.gameObject.AddComponent<EnemySlow>();
+        slow.Apply(0f, strongestTargetParalysisDuration);
+        LastParalyzedTarget = health;
+    }
+
+    void BuildBranchingChain(GameObject firstTarget, List<GameObject> hitEnemies, List<Vector3> points)
+    {
+        var first = firstTarget.GetComponent<EnemyHealth>();
+        if (first == null || first.IsDead) return;
+        var visited = new HashSet<EnemyHealth> { first };
+        var queue = new Queue<EnemyHealth>();
+        var children = new Dictionary<EnemyHealth, List<EnemyHealth>>();
+        queue.Enqueue(first);
+        children[first] = new List<EnemyHealth>();
+        // Build the connected target graph before dealing damage, so killed enemies
+        // still carry this attack's lightning through to their neighbours.
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            hitEnemies.Add(current.gameObject);
+            foreach (var collider in Physics.OverlapSphere(current.transform.position, chainRadius))
+            {
+                var next = collider.GetComponentInParent<EnemyHealth>();
+                if (next == null || next.IsDead || !next.CompareTag("Enemy") || visited.Contains(next)) continue;
+                if ((next.transform.position - current.transform.position).sqrMagnitude > chainRadius * chainRadius) continue;
+                visited.Add(next);
+                children[current].Add(next);
+                children[next] = new List<EnemyHealth>();
+                queue.Enqueue(next);
+            }
+        }
+        points.Add(first.transform.position);
+        AppendBranchPath(first, children, points);
+        foreach (var hit in hitEnemies) hit.GetComponent<EnemyHealth>().TakeChainDamage(lightningDamage);
+    }
+
+    static void AppendBranchPath(EnemyHealth current, Dictionary<EnemyHealth, List<EnemyHealth>> children, List<Vector3> points)
+    {
+        foreach (var child in children[current])
+        {
+            points.Add(child.transform.position);
+            AppendBranchPath(child, children, points);
+            points.Add(current.transform.position);
+        }
     }
 
     GameObject GetClosestEnemyToTarget(Vector3 position, List<GameObject> exclude)
@@ -160,13 +247,14 @@ public class TowerAttack : MonoBehaviour
 
         foreach (Collider hit in hits)
         {
-            if (hit.CompareTag("Enemy") && !exclude.Contains(hit.gameObject))
+            var health = hit.GetComponentInParent<EnemyHealth>();
+            if (health != null && !health.IsDead && health.CompareTag("Enemy") && !exclude.Contains(health.gameObject))
             {
-                float dist = Vector3.Distance(position, hit.transform.position);
+                float dist = Vector3.Distance(position, health.transform.position);
                 if (dist < minDistance)
                 {
                     minDistance = dist;
-                    closest = hit.gameObject;
+                    closest = health.gameObject;
                 }
             }
         }

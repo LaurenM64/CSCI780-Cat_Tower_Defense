@@ -19,18 +19,22 @@ public class TowerPlacement : MonoBehaviour
     public TMPro.TMP_Text pokemonLabel;
     public int waveOneTowerLimit = 2;
     public int waveTwoTowerLimit = 5;
-    public int CurrentTowerLimit => wave.WaveNumber == 1 ? waveOneTowerLimit : waveTwoTowerLimit;
+    public int waveThreeTowerLimit = 8;
+    public bool UnlimitedTowers => wave.EverythingUnlocked;
+    public int CurrentTowerLimit => UnlimitedTowers ? int.MaxValue : wave.WaveNumber == 1 ? waveOneTowerLimit : wave.WaveNumber == 2 ? waveTwoTowerLimit : waveThreeTowerLimit;
     [Tooltip("Radius used to check clearance against other towers.")]
     public float unitClearanceRadius = 0.75f;
     [Tooltip("Horizontal model footprint used only for track and walls.")]
     public float modelFootprintRadius = 0.5f;
     private readonly List<GameObject> placedTowers = new List<GameObject>();
     public int PlacedTowerCount { get { placedTowers.RemoveAll(t => t == null); return placedTowers.Count; } }
-    public bool AtTowerLimit => PlacedTowerCount >= CurrentTowerLimit;
+    public bool AtTowerLimit => !UnlimitedTowers && PlacedTowerCount >= CurrentTowerLimit;
 
-    //COMMENTING OUT TEMPORARILY FOR TESTING
-   //public bool IsOfferLocked(int index) => wave.WaveNumber == 1 && index >= 2;
-    public bool IsOfferLocked(int index) => false; 
+    // Only the three off-track tower offers remain.
+    public bool IsOfferLocked(int index) => index < 0 || index >= 3;
+
+    bool HasOffer(int index) => offers != null && index >= 0 && index < 3
+        && index < offers.Length && offers[index] != null && offers[index].button != null;
 
 
     private EnemySpawner wave;
@@ -67,10 +71,15 @@ public class TowerPlacement : MonoBehaviour
     }
     void RefreshOfferLocks()
     {
+        if (offers == null) return;
+        if (offers.Length > 3) System.Array.Resize(ref offers, 3);
         for (int i = 0; i < offers.Length; i++)
         {
+            if (!HasOffer(i)) continue;
+            offers[i].button.gameObject.SetActive(true);
             bool locked = IsOfferLocked(i);
-            offers[i].button.GetComponent<UnityEngine.UI.Button>().interactable = !locked;
+            var button = offers[i].button.GetComponent<UnityEngine.UI.Button>();
+            if (button != null) button.interactable = !locked;
             var overlay = offers[i].button.transform.Find("WaveLockedOverlay");
             if (overlay != null) overlay.gameObject.SetActive(locked);
         }
@@ -78,6 +87,7 @@ public class TowerPlacement : MonoBehaviour
     public void SelectTower(int index)
     {
         if (wave.State != EnemySpawner.WaveState.PreWave) return;
+        if (!HasOffer(index)) { CancelPurchase(); return; }
         if (IsOfferLocked(index) || AtTowerLimit) { CancelPurchase(); return; }
         if (wave.Coins < offers[index].cost) { CancelPurchase(); FlashUnaffordable(index); return; }
 
@@ -93,17 +103,20 @@ public class TowerPlacement : MonoBehaviour
     }
     IEnumerator FlashButton(int index)
     {
-        var overlay = offers[index].button.transform.Find("InsufficientCoinsFlash").gameObject;
+        if (!HasOffer(index)) yield break;
+        var flash = offers[index].button.transform.Find("InsufficientCoinsFlash");
+        if (flash == null) yield break;
+        var overlay = flash.gameObject;
         overlay.SetActive(true);
         yield return new WaitForSecondsRealtime(0.2f);
-        overlay.SetActive(false);
+        if (overlay != null) overlay.SetActive(false);
         flashes.Remove(index);
     }
     public void CancelPurchase() { SetMode(BuildMode.None); }
     public bool TryPlaceTower(Vector3 position)
     {
         if (wave.State != EnemySpawner.WaveState.PreWave || currentMode == BuildMode.None) return false;
-        if (AtTowerLimit || !HasPlacementClearance(position)) return false;
+        if (!HasOffer(SelectedOfferIndex) || AtTowerLimit || !HasPlacementClearance(position)) return false;
 
         int cost = 0;
         GameObject prefabToBuild = null;
@@ -134,6 +147,7 @@ public class TowerPlacement : MonoBehaviour
         var evolution = tower.GetComponent<TowerEvolution>();
         var purchase = tower.GetComponent<TowerPurchase>();
         if (evolution == null || !evolution.CanEvolve || purchase == null || purchase.Sold) return false;
+        if (!evolution.IsUnlocked(wave)) return false;
         if (wave.Coins < evolution.evolutionCost) return false;
         var replacement = Instantiate(evolution.nextStagePrefab, tower.transform.position, tower.transform.rotation);
         var replacementPurchase = replacement.GetComponent<TowerPurchase>();
@@ -181,7 +195,7 @@ public class TowerPlacement : MonoBehaviour
         rangePreview.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         rangePreview.receiveShadows = false;
         currentPreview.SetActive(false);
-        removeButton.gameObject.SetActive(false);
+        if (removeButton != null) removeButton.gameObject.SetActive(false);
     }
     void OnDestroy()
     {
@@ -198,19 +212,19 @@ public class TowerPlacement : MonoBehaviour
         
         // Highlight the selected tower's buy button.
         for (int i = 0; i < 3; i++)
-            offers[i].button.color = currentMode != BuildMode.None && SelectedOfferIndex == i ? highlightColor : defaultColor;
+            if (HasOffer(i)) offers[i].button.color = currentMode != BuildMode.None && SelectedOfferIndex == i ? highlightColor : defaultColor;
         if (currentMode != BuildMode.None && detailsPanel != null) detailsPanel.Close();
         
         if (currentMode != BuildMode.None)
         {
             // We are building. Turn the Cancel button ON.
-            removeButton.gameObject.SetActive(true);
+            if (removeButton != null) removeButton.gameObject.SetActive(true);
         }
         else
         {
             // We are not building. Turn the Cancel button OFF and hide the ghost.
-            removeButton.gameObject.SetActive(false);
-            currentPreview.SetActive(false);
+            if (removeButton != null) removeButton.gameObject.SetActive(false);
+            if (currentPreview != null) currentPreview.SetActive(false);
         }
     }
 
@@ -220,12 +234,14 @@ public class TowerPlacement : MonoBehaviour
     void LateUpdate()
     {
         if (pokemonLabel == null) return;
-        pokemonLabel.text = "Pokemon " + PlacedTowerCount + "/" + CurrentTowerLimit;
+        pokemonLabel.text = "Pokemon " + PlacedTowerCount + "/" + (UnlimitedTowers ? "Unlimited" : CurrentTowerLimit.ToString());
         var coins = wave.coinLabel.rectTransform;
         var rect = pokemonLabel.rectTransform;
         rect.anchorMin = coins.anchorMin; rect.anchorMax = coins.anchorMax; rect.pivot = coins.pivot;
         rect.sizeDelta = new Vector2(coins.sizeDelta.x, 60f);
         rect.anchoredPosition = coins.anchoredPosition + new Vector2(0, coins.rect.height);
+        if (UnlimitedTowers)
+            rect.anchoredPosition = new Vector2(Mathf.Max(rect.anchoredPosition.x, rect.rect.width * 0.5f + 24f), rect.anchoredPosition.y);
     }
     void Update()
     {
