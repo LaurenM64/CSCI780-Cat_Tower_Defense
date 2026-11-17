@@ -17,8 +17,8 @@ public class PixelFxLightningFade : MonoBehaviour
         {
             Vector3 start=points[i-1]+Vector3.up*0.4f,end=points[i]+Vector3.up*0.4f;
             Vector3 direction=end-start;if(direction.sqrMagnitude<0.0001f)continue;
-            Vector3 side=Vector3.Cross(direction.normalized,Vector3.up).normalized*0.25f;
-            if(side.sqrMagnitude<0.0001f)side=Vector3.right*0.25f;
+            Vector3 side=Vector3.Cross(direction.normalized,Vector3.up).normalized*0.4f;
+            if(side.sqrMagnitude<0.0001f)side=Vector3.right*0.4f;
             int n=vertices.Count;
             vertices.Add(start-side);vertices.Add(start+side);vertices.Add(end-side);vertices.Add(end+side);
             uv.Add(new Vector2(0,0));uv.Add(new Vector2(0,1));uv.Add(new Vector2(1,0));uv.Add(new Vector2(1,1));
