@@ -8,6 +8,8 @@ public class PixelFxAttackVisual : MonoBehaviour
     public Material lightningMaterial;
     MeshRenderer fireRenderer;
     Mesh fireMesh;
+    Vector3[] trailVertices;
+    const int FireArcs = 24, FireRings = 24;
     MaterialPropertyBlock properties;
     float fireClock;
     PixelFxFireBurst activeFire;
@@ -24,7 +26,7 @@ public class PixelFxAttackVisual : MonoBehaviour
         ApplyFrame(fireRenderer, fireMaterial, Mathf.FloorToInt(fireClock * 12f) % 18, 4, 5, alpha, ref properties);
     }
 
-    public void FireTick(Vector3 direction, float range, float angle)
+    public void EmitFire(Vector3 direction, float range, float angle)
     {
         if (fireMaterial == null) return;
         if (activeFire != null)
@@ -55,7 +57,7 @@ public class PixelFxAttackVisual : MonoBehaviour
         fireRenderer.sharedMaterial = fireMaterial;
         fireRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         fireRenderer.receiveShadows = false;
-        const int arcs = 24, rings = 8;
+        const int arcs = FireArcs, rings = FireRings;
         var vertices = new Vector3[(arcs+1)*(rings+1)];
         var uv = new Vector2[vertices.Length];
         var indices = new List<int>();
@@ -73,9 +75,31 @@ public class PixelFxAttackVisual : MonoBehaviour
                 indices.Add(i+1);indices.Add(j);indices.Add(j+1);
             }
         }
+        trailVertices=vertices;
         fireMesh=new Mesh {name="PixelFX fire fan"};
+        fireMesh.MarkDynamic();
         fireMesh.vertices=vertices;fireMesh.uv=uv;fireMesh.SetTriangles(indices,0);fireMesh.RecalculateBounds();
         filter.sharedMesh=fireMesh;
+    }
+
+    public void ShowTrailingFire(PixelFxFireBurst trail, float range, float angle, float alpha)
+    {
+        ShowFire(Vector3.forward,range,angle,alpha);
+        // Each radial layer remembers the direction when that flame left the mouth.
+        // Near layers track the model now; the outer layers retain older directions.
+        for(int r=0;r<=FireRings;r++)
+        {
+            float radial=(float)r/FireRings;
+            Vector3 aim=trail.DirectionAt(radial*PixelFxFireBurst.TravelSeconds);
+            aim=fireRenderer.transform.InverseTransformDirection(aim);
+            for(int a=0;a<=FireArcs;a++)
+            {
+                float degrees=((float)a/FireArcs-0.5f)*angle;
+                trailVertices[r*(FireArcs+1)+a]=Quaternion.AngleAxis(degrees,Vector3.up)*aim*range*radial;
+            }
+        }
+        fireMesh.vertices=trailVertices;
+        fireMesh.RecalculateBounds();
     }
 
     public void Lightning(IReadOnlyList<Vector3> points)

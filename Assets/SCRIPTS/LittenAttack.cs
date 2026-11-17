@@ -49,6 +49,7 @@ public class LittenAttack : MonoBehaviour
         if (facing != null) facing.FaceDirection(direction);
         if (pixelFx != null && pixelFx.fireMaterial != null)
         {
+            pixelFx.EmitFire(direction, attackRange, coneAngle);
             if (fireCone != null) fireCone.enabled = false;
         }
         else if (fireCone != null)
@@ -64,7 +65,6 @@ public class LittenAttack : MonoBehaviour
         countdown -= Time.deltaTime;
         if (countdown > 0f) return;
         DamageCone(direction);
-        if (pixelFx != null && pixelFx.fireMaterial != null) pixelFx.FireTick(direction, attackRange, coneAngle);
         countdown = 1f / ticksPerSecond;
     }
 
