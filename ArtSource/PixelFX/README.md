@@ -14,3 +14,5 @@ Copy each PNG and JSON to Assets/VFX/PixelFX. Retain Point filtering, no mipmaps
 The Unity fan maps the fire texture onto the existing attack area. It does not apply damage. Each chain strike creates a single mesh containing all its links, immediately visible, fading over 3 seconds at its original hit positions. Strikes overlap independently. No lights, postprocessing, screen effects or runtime JavaScript are added.
 
 Branch: codex/pixelfx-experiment, based on model-rotation (d79d1a5). Old wedge and LineRenderer references remain as fallback when the PixelFxAttackVisual component/material is removed.
+
+Fire readability update: each real damage tick now creates an independent visual burst. It remains fully opaque for 1 second, then fades over 0.35 seconds; lingering visuals never apply extra damage. UVs crop to the bright flame body so it reaches the full attack radius. The fire material adds a small four-tap warm halo, with no scene lights or bloom requirement. Lightning glow stays disabled.

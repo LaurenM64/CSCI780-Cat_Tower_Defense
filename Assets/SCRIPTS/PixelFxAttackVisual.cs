@@ -13,14 +13,24 @@ public class PixelFxAttackVisual : MonoBehaviour
     static readonly int Sheet = Shader.PropertyToID("_Sheet");
     static readonly int Tint = Shader.PropertyToID("_Tint");
 
-    public void ShowFire(Vector3 direction, float range, float angle)
+    public void ShowFire(Vector3 direction, float range, float angle, float alpha = 1f)
     {
         if (fireMaterial == null) return;
         if (fireRenderer == null) BuildFire(range, angle);
         fireRenderer.enabled = true;
         fireRenderer.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
         fireClock += Time.deltaTime;
-        ApplyFrame(fireRenderer, fireMaterial, Mathf.FloorToInt(fireClock * 12f) % 18, 4, 5, 1f, ref properties);
+        ApplyFrame(fireRenderer, fireMaterial, Mathf.FloorToInt(fireClock * 12f) % 18, 4, 5, alpha, ref properties);
+    }
+
+    public void FireTick(Vector3 direction, float range, float angle)
+    {
+        if (fireMaterial == null) return;
+        var effect = new GameObject("PixelFX Fire Tick (1s hold)");
+        effect.transform.SetParent(transform, false);
+        var visual = effect.AddComponent<PixelFxAttackVisual>();
+        visual.fireMaterial = fireMaterial;
+        effect.AddComponent<PixelFxFireBurst>().Initialize(visual, direction, range, angle);
     }
 
     public void HideFire()
@@ -48,7 +58,7 @@ public class PixelFxAttackVisual : MonoBehaviour
             float theta=(across-0.5f)*angle*Mathf.Deg2Rad;
             int i=r*(arcs+1)+a;
             vertices[i]=new Vector3(Mathf.Sin(theta),0,Mathf.Cos(theta))*radial*range;
-            uv[i]=new Vector2((12f+148f*radial)/160f, (116f-(72f-40f*radial+(across-0.5f)*88f))/116f);
+            uv[i]=new Vector2((12f+96f*radial)/160f, (116f-(72f-26f*radial+(across-0.5f)*68f))/116f);
             if(r<rings && a<arcs)
             {
                 int j=i+arcs+1;
