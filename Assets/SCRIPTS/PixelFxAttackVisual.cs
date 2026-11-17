@@ -10,6 +10,7 @@ public class PixelFxAttackVisual : MonoBehaviour
     Mesh fireMesh;
     MaterialPropertyBlock properties;
     float fireClock;
+    PixelFxFireBurst activeFire;
     static readonly int Sheet = Shader.PropertyToID("_Sheet");
     static readonly int Tint = Shader.PropertyToID("_Tint");
 
@@ -26,11 +27,17 @@ public class PixelFxAttackVisual : MonoBehaviour
     public void FireTick(Vector3 direction, float range, float angle)
     {
         if (fireMaterial == null) return;
-        var effect = new GameObject("PixelFX Fire Tick (1s hold)");
+        if (activeFire != null)
+        {
+            activeFire.Refresh(direction, range, angle);
+            return;
+        }
+        var effect = new GameObject("PixelFX Fire Stream (1s hold)");
         effect.transform.SetParent(transform, false);
         var visual = effect.AddComponent<PixelFxAttackVisual>();
         visual.fireMaterial = fireMaterial;
-        effect.AddComponent<PixelFxFireBurst>().Initialize(visual, direction, range, angle);
+        activeFire = effect.AddComponent<PixelFxFireBurst>();
+        activeFire.Initialize(visual, direction, range, angle);
     }
 
     public void HideFire()

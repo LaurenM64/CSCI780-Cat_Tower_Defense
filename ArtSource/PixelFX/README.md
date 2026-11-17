@@ -16,3 +16,5 @@ The Unity fan maps the fire texture onto the existing attack area. It does not a
 Branch: codex/pixelfx-experiment, based on model-rotation (d79d1a5). Old wedge and LineRenderer references remain as fallback when the PixelFxAttackVisual component/material is removed.
 
 Fire readability update: each real damage tick now creates an independent visual burst. It remains fully opaque for 1 second, then fades over 0.35 seconds; lingering visuals never apply extra damage. UVs crop to the bright flame body so it reaches the full attack radius. The fire material adds a small four-tap warm halo, with no scene lights or bloom requirement. Lightning glow stays disabled.
+
+Fire blending update: ticks refresh a single continuous stream instead of layering separate fans. Animation does not restart per tick. The stream follows TowerFacing.FacingDirection after model rotation in LateUpdate; damage still uses the gameplay target direction. The last tick holds the stream for 1 second before its 0.35-second fade. This reduces mesh count and eliminates distinct overlapping cones.

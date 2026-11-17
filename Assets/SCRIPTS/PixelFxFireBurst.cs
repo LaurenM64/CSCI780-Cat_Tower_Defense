@@ -1,12 +1,14 @@
 using UnityEngine;
 
-// Each damage tick leaves a visual only snapshot, independent of later aiming.
+// One continuous visual stream: ticks refresh its hold without restarting the animation.
+[DefaultExecutionOrder(100)]
 public class PixelFxFireBurst : MonoBehaviour
 {
     public const float HoldSeconds = 1f;
     public const float FadeSeconds = 0.35f;
     PixelFxAttackVisual visual;
     Vector3 direction;
+    TowerFacing facing;
     float range, angle, age;
     public static float AlphaAt(float seconds)
     {
@@ -14,13 +16,19 @@ public class PixelFxFireBurst : MonoBehaviour
     }
     public void Initialize(PixelFxAttackVisual effect, Vector3 aim, float radius, float wedge)
     {
-        visual=effect;direction=aim;range=radius;angle=wedge;
-        visual.ShowFire(direction,range,angle);
+        visual=effect;
+        facing=GetComponentInParent<TowerFacing>();
+        Refresh(aim,radius,wedge);
+        visual.ShowFire(facing != null ? facing.FacingDirection : direction,range,angle);
     }
-    void Update()
+    public void Refresh(Vector3 aim, float radius, float wedge)
+    {
+        direction=aim;range=radius;angle=wedge;age=0f;
+    }
+    void LateUpdate()
     {
         age+=Time.deltaTime;
         if(age>=HoldSeconds+FadeSeconds){Destroy(gameObject);return;}
-        visual.ShowFire(direction,range,angle,AlphaAt(age));
+        visual.ShowFire(facing != null ? facing.FacingDirection : direction,range,angle,AlphaAt(age));
     }
 }
