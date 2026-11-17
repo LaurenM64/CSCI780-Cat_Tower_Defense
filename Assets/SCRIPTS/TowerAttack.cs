@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Splines;
 
+[RequireComponent(typeof(TowerFacing))]
 public class TowerAttack : MonoBehaviour
 {
     [Header("General Attack Settings")]
     public bool isChainLightning = false; // Check this ONLY on the Shinx prefab!
     public float fireRate = 1f; 
     private float fireCountdown = 0f;
+    private TowerFacing facing;
+    private GameObject lockedTarget;
     private List<GameObject> enemiesInRange = new List<GameObject>();
 
     [Header("Projectile Settings (Sprigatito)")]
@@ -30,11 +33,18 @@ public class TowerAttack : MonoBehaviour
 
     void Update()
     {
-        enemiesInRange.RemoveAll(item => item == null || !item.activeInHierarchy);
+        enemiesInRange.RemoveAll(item => !IsLiveTarget(item));
+        fireCountdown -= Time.deltaTime;
 
         if (enemiesInRange.Count > 0)
         {
-            fireCountdown -= Time.deltaTime;
+            var target = GetTargetClosestToGoal();
+            if (target == null)
+            {
+                fireCountdown = Mathf.Max(0f, fireCountdown);
+                return;
+            }
+            FaceTarget(target.transform.position);
             if (fireCountdown <= 0f)
             {
                 if (isChainLightning)
@@ -43,16 +53,34 @@ public class TowerAttack : MonoBehaviour
                 }
                 else
                 {
-                    Shoot(GetTargetClosestToGoal());
+                    Shoot(target);
                 }
-                fireCountdown = 1f / fireRate;
+                // Preserve frame overshoot so low frame rates do not slow the cadence.
+                float interval = 1f / Mathf.Max(0.01f, fireRate);
+                fireCountdown = Mathf.Max(0f, fireCountdown + interval);
             }
         }
+        else fireCountdown = Mathf.Max(0f, fireCountdown);
+    }
+
+    void FaceTarget(Vector3 position)
+    {
+        if (facing == null) facing = GetComponent<TowerFacing>();
+        if (facing != null) facing.FaceDirection(position - transform.position);
     }
 
     // --- SPRIGATITO PROJECTILE LOGIC ---
+    bool IsLiveTarget(GameObject enemy)
+    {
+        if (enemy == null || !enemy.activeInHierarchy) return false;
+        var health = enemy.GetComponent<EnemyHealth>();
+        return health == null || !health.IsDead;
+    }
+
     GameObject GetTargetClosestToGoal()
     {
+        if (IsLiveTarget(lockedTarget) && enemiesInRange.Contains(lockedTarget)) return lockedTarget;
+        lockedTarget = null;
         GameObject bestTarget = null;
         float highestProgress = -1f;
 
@@ -65,6 +93,7 @@ public class TowerAttack : MonoBehaviour
                 bestTarget = enemy;
             }
         }
+        lockedTarget = bestTarget;
         return bestTarget;
     }
 
@@ -138,6 +167,7 @@ public class TowerAttack : MonoBehaviour
         GameObject currentTarget = GetTargetClosestToGoal(); // Uses same priority target logic
         
         if (currentTarget == null) return;
+        FaceTarget(currentTarget.transform.position);
 
         List<Vector3> lightningPoints = new List<Vector3>();
         lightningPoints.Add(transform.position + new Vector3(0, 0.5f, 0)); // Start at Shinx
@@ -251,6 +281,7 @@ public class TowerAttack : MonoBehaviour
             if (health != null && !health.IsDead && health.CompareTag("Enemy") && !exclude.Contains(health.gameObject))
             {
                 float dist = Vector3.Distance(position, health.transform.position);
+                if (dist > chainRadius) continue;
                 if (dist < minDistance)
                 {
                     minDistance = dist;
@@ -263,6 +294,13 @@ public class TowerAttack : MonoBehaviour
 
     IEnumerator DrawLightning(List<Vector3> points)
     {
+        var pixelFx = GetComponent<PixelFxAttackVisual>();
+        if (pixelFx != null && pixelFx.lightningMaterial != null)
+        {
+            if (lineRenderer != null) lineRenderer.enabled = false;
+            pixelFx.Lightning(points);
+            yield break;
+        }
         if (lineRenderer == null) yield break;
         
         lineRenderer.positionCount = points.Count;

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 268861706352633735}
   - component: {fileID: 3011943116905333889}
   - component: {fileID: 6066414976479219673}
+  - component: {fileID: 433343892737226590}
   m_Layer: 0
   m_Name: BulletSeed
   m_TagString: Untagged
@@ -51,7 +52,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4422390817231754742}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -155,3 +156,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BulletSeed
   speed: 20
   damage: 2
+--- !u!114 &433343892737226590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4422390817231754742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 660bdcff8a3761b44b6bb590da0dab9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelFxProjectileVisual
+  material: {fileID: 2100000, guid: 8d4ee241280f4374e9a1f08fc17b6107, type: 2}
+  trailMaterial: {fileID: 2100000, guid: 3684a8a874e74b042973c923f948b9b5, type: 2}
+  columns: 3
+  rows: 2
+  frames: 6
+  worldSize: 0.6
+  trailSeconds: 1
+  trailWidth: 0.035
+  leafMoteMaterial: {fileID: 0}
+  leaveLeaves: 0
+  fadeLifetime: 0

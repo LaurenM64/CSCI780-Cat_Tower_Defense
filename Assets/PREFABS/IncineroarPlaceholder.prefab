@@ -80,7 +80,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 3
       minMaxState: 0
-      scalar: 0.5
+      scalar: 5
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -2402,6 +2402,8 @@ GameObject:
   - component: {fileID: 5831875961961853778}
   - component: {fileID: 5052989272244983193}
   - component: {fileID: 7706853609810451009}
+  - component: {fileID: 3986976080416007851}
+  - component: {fileID: 4301732113732915188}
   m_Layer: 7
   m_Name: IncineroarPlaceholder
   m_TagString: Untagged
@@ -2470,7 +2472,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 4
+  m_Radius: 2.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &5831875961961853778
 MonoBehaviour:
@@ -2484,11 +2486,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f85b879c379ca354a9751668d95b788e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LittenAttack
-  detectionRange: 4
-  attackRange: 4
+  detectionRange: 2.5
+  attackRange: 2.5
   coneAngle: 175.78125
-  damage: 5
-  ticksPerSecond: 4
+  damage: 3
+  ticksPerSecond: 3
   flameSpeed: 0.5
   flames: {fileID: 2936202852792672743}
   fireCone: {fileID: 3418884536599436389}
@@ -2524,6 +2526,37 @@ MonoBehaviour:
   speedMultiplier: 0.2
   slowDuration: 5
   impactPrefab: {fileID: 882213749166489718, guid: 31835a3669db4f3438295fb1b3ad10c5, type: 3}
+--- !u!114 &3986976080416007851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7202647599070069434}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f31355cebc591c499c0d1211665c242, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerFacing
+  model: {fileID: 1112387655890442411}
+  turnSpeedDegreesPerSecond: 720
+  neutralLocalPosition: {x: -0.00000005502693, y: -0.012944224, z: -0.05231294}
+  neutralLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  poseInitialized: 1
+--- !u!114 &4301732113732915188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7202647599070069434}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 012ae5cc16af892478166b8f89630f5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelFxAttackVisual
+  fireMaterial: {fileID: 2100000, guid: 13a1a847400bf194cb73239e4c539b80, type: 2}
+  lightningMaterial: {fileID: 0}
 --- !u!1 &9213120763604414336
 GameObject:
   m_ObjectHideFlags: 0
@@ -2552,7 +2585,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.08, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.625, y: 1, z: 0.625}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2446077797703208825}

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Splines;
 
+[RequireComponent(typeof(TowerFacing))]
 public class LittenAttack : MonoBehaviour
 {
     [Min(0.01f)] public float detectionRange = 1f;
@@ -13,6 +14,8 @@ public class LittenAttack : MonoBehaviour
     public MeshRenderer fireCone;
     public EnemyHealth Target { get; private set; }
     private float countdown;
+    private TowerFacing facing;
+    private PixelFxAttackVisual pixelFx;
 
     void Awake()
     {
@@ -29,10 +32,12 @@ public class LittenAttack : MonoBehaviour
 
     void Update()
     {
+        if (pixelFx == null) pixelFx = GetComponent<PixelFxAttackVisual>();
         Target = FindTarget();
         if (Target == null)
         {
-            countdown = 0f;
+            countdown = Mathf.Max(0f, countdown - Time.deltaTime);
+            if (pixelFx != null) pixelFx.HideFire();
             if (fireCone != null) fireCone.enabled = false;
             if (flames != null && flames.isEmitting) flames.Stop(true, ParticleSystemStopBehavior.StopEmitting);
             return;
@@ -40,7 +45,14 @@ public class LittenAttack : MonoBehaviour
         Vector3 direction = Target.transform.position - transform.position;
         direction.y = 0f;
         if (direction.sqrMagnitude < 0.000001f) direction = transform.forward;
-        if (fireCone != null)
+        if (facing == null) facing = GetComponent<TowerFacing>();
+        if (facing != null) facing.FaceDirection(direction);
+        if (pixelFx != null && pixelFx.fireMaterial != null)
+        {
+            pixelFx.EmitFire(direction, attackRange, coneAngle);
+            if (fireCone != null) fireCone.enabled = false;
+        }
+        else if (fireCone != null)
         {
             fireCone.enabled = true;
             fireCone.transform.rotation = Quaternion.LookRotation(direction);
@@ -58,6 +70,12 @@ public class LittenAttack : MonoBehaviour
 
     EnemyHealth FindTarget()
     {
+        if (Target != null && !Target.IsDead && Target.gameObject.activeInHierarchy)
+        {
+            Vector3 currentOffset = Target.transform.position - transform.position;
+            currentOffset.y = 0f;
+            if (currentOffset.sqrMagnitude <= detectionRange * detectionRange) return Target;
+        }
         EnemyHealth best = null;
         float progress = float.NegativeInfinity;
         foreach (var enemy in FindObjectsByType<EnemyHealth>())
@@ -100,6 +118,7 @@ public class LittenAttack : MonoBehaviour
     void OnDisable()
     {
         Target = null;
+        if (pixelFx != null) pixelFx.HideFire();
         if (fireCone != null) fireCone.enabled = false;
         if (flames != null) flames.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }

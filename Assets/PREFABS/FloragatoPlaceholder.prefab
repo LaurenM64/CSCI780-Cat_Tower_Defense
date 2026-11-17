@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5240028707966616340}
   - component: {fileID: 4022686709423661895}
   - component: {fileID: 5746948479392273022}
+  - component: {fileID: 3000623867560474069}
   m_Layer: 7
   m_Name: FloragatoPlaceholder
   m_TagString: Untagged
@@ -79,7 +80,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 7
+  m_Radius: 4.375
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4022686709423661895
 MonoBehaviour:
@@ -99,8 +100,12 @@ MonoBehaviour:
   bulletSpeed: 20
   lightningDamage: 2
   maxChainTargets: 3
+  unlimitedBranchingChain: 0
+  paralyzeAllChainTargets: 0
   chainRadius: 4
   lineRenderer: {fileID: 0}
+  strongestTargetParalysisDuration: 0
+  paralysisEveryNAttacks: 1
 --- !u!114 &5746948479392273022
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -117,6 +122,23 @@ MonoBehaviour:
   nextStagePrefab: {fileID: 5108318424914946450, guid: 468f4e74060b21b4ab1016d0cc7aa736, type: 3}
   evolutionCost: 5
   earliestWave: 1
+--- !u!114 &3000623867560474069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 779938840908549562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f31355cebc591c499c0d1211665c242, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerFacing
+  model: {fileID: 3619627530654224656}
+  turnSpeedDegreesPerSecond: 720
+  neutralLocalPosition: {x: -0, y: 0.012930321, z: 0.0023390385}
+  neutralLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  poseInitialized: 1
 --- !u!1 &1301159789872177140
 GameObject:
   m_ObjectHideFlags: 0
