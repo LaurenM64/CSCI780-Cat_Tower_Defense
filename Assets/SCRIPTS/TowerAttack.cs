@@ -294,6 +294,13 @@ public class TowerAttack : MonoBehaviour
 
     IEnumerator DrawLightning(List<Vector3> points)
     {
+        var pixelFx = GetComponent<PixelFxAttackVisual>();
+        if (pixelFx != null && pixelFx.lightningMaterial != null)
+        {
+            if (lineRenderer != null) lineRenderer.enabled = false;
+            pixelFx.Lightning(points);
+            yield break;
+        }
         if (lineRenderer == null) yield break;
         
         lineRenderer.positionCount = points.Count;

@@ -2312,6 +2312,7 @@ GameObject:
   - component: {fileID: 7174159699397058383}
   - component: {fileID: 815301868168068624}
   - component: {fileID: 3787546664903193964}
+  - component: {fileID: 4722766777152247036}
   m_Layer: 7
   m_Name: Litten
   m_TagString: Untagged
@@ -2435,6 +2436,20 @@ MonoBehaviour:
   neutralLocalPosition: {x: -0.000000057594832, y: 0.009586541, z: 0.050246164}
   neutralLocalRotation: {x: 0, y: 0, z: 0, w: 1}
   poseInitialized: 1
+--- !u!114 &4722766777152247036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3764455812209951307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 012ae5cc16af892478166b8f89630f5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelFxAttackVisual
+  fireMaterial: {fileID: 2100000, guid: 13a1a847400bf194cb73239e4c539b80, type: 2}
+  lightningMaterial: {fileID: 0}
 --- !u!1 &3863461326795811233
 GameObject:
   m_ObjectHideFlags: 0

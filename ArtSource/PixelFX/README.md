@@ -1,0 +1,16 @@
+# PixelFX attack experiment
+
+Source: https://github.com/patch-gg/pixelfx
+Revision: 5294518ce7c72e48b6100a744596e0acf57f2826 (MIT; see LICENSE and NOTICE.md).
+
+Fire uses fire/fire-breath. Lightning uses tower-link, a small adapter built from PixelFX's zigzag/stroke helpers, with no forks, props or impact particles. Only the necessary source modules are included. Patch's gallery fonts are not included.
+
+Regenerate from this directory with Node 18+ (no install required):
+
+    node tools/render.mjs fire/fire-breath lightning/tower-link --sheet --fps 12 --no-actor --bg none --out rendered
+
+Copy each PNG and JSON to Assets/VFX/PixelFX. Retain Point filtering, no mipmaps, uncompressed RGBA. Fire has 18 frames in a 4-column/5-row atlas; lightning has 6 frames in a 2-column/3-row atlas. The Unity adapter uses these fixed layouts at 12 fps.
+
+The Unity fan maps the fire texture onto the existing attack area. It does not apply damage. Each chain strike creates a single mesh containing all its links, immediately visible, fading over 3 seconds at its original hit positions. Strikes overlap independently. No lights, postprocessing, screen effects or runtime JavaScript are added.
+
+Branch: codex/pixelfx-experiment, based on model-rotation (d79d1a5). Old wedge and LineRenderer references remain as fallback when the PixelFxAttackVisual component/material is removed.

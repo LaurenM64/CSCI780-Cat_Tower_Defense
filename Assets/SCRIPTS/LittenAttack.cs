@@ -15,6 +15,7 @@ public class LittenAttack : MonoBehaviour
     public EnemyHealth Target { get; private set; }
     private float countdown;
     private TowerFacing facing;
+    private PixelFxAttackVisual pixelFx;
 
     void Awake()
     {
@@ -31,10 +32,12 @@ public class LittenAttack : MonoBehaviour
 
     void Update()
     {
+        if (pixelFx == null) pixelFx = GetComponent<PixelFxAttackVisual>();
         Target = FindTarget();
         if (Target == null)
         {
             countdown = Mathf.Max(0f, countdown - Time.deltaTime);
+            if (pixelFx != null) pixelFx.HideFire();
             if (fireCone != null) fireCone.enabled = false;
             if (flames != null && flames.isEmitting) flames.Stop(true, ParticleSystemStopBehavior.StopEmitting);
             return;
@@ -44,7 +47,12 @@ public class LittenAttack : MonoBehaviour
         if (direction.sqrMagnitude < 0.000001f) direction = transform.forward;
         if (facing == null) facing = GetComponent<TowerFacing>();
         if (facing != null) facing.FaceDirection(direction);
-        if (fireCone != null)
+        if (pixelFx != null && pixelFx.fireMaterial != null)
+        {
+            pixelFx.ShowFire(direction, attackRange, coneAngle);
+            if (fireCone != null) fireCone.enabled = false;
+        }
+        else if (fireCone != null)
         {
             fireCone.enabled = true;
             fireCone.transform.rotation = Quaternion.LookRotation(direction);
@@ -110,6 +118,7 @@ public class LittenAttack : MonoBehaviour
     void OnDisable()
     {
         Target = null;
+        if (pixelFx != null) pixelFx.HideFire();
         if (fireCone != null) fireCone.enabled = false;
         if (flames != null) flames.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }

@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 6070445483363409660}
   - component: {fileID: 5166445092408989593}
   - component: {fileID: 3098180718515187371}
+  - component: {fileID: 6169815058755558912}
   m_Layer: 7
   m_Name: LuxrayPlaceholder
   m_TagString: Untagged
@@ -250,6 +251,20 @@ MonoBehaviour:
   neutralLocalPosition: {x: -0, y: 0.0004699954, z: 0.044892173}
   neutralLocalRotation: {x: 0, y: 0, z: 0, w: 1}
   poseInitialized: 1
+--- !u!114 &6169815058755558912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 173979432075157878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 012ae5cc16af892478166b8f89630f5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelFxAttackVisual
+  fireMaterial: {fileID: 0}
+  lightningMaterial: {fileID: 2100000, guid: c53a83c3a3fe34f4da2d522e7226808e, type: 2}
 --- !u!1 &1983857153788215498
 GameObject:
   m_ObjectHideFlags: 0
