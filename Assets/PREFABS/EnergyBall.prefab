@@ -295,5 +295,8 @@ MonoBehaviour:
   rows: 3
   frames: 12
   worldSize: 0.95
-  trailSeconds: 0.045
+  trailSeconds: 1.5
   trailWidth: 0.065
+  leafMoteMaterial: {fileID: 2100000, guid: 4096dbb8445430f419cd93be35ff0723, type: 2}
+  leaveLeaves: 1
+  fadeLifetime: 0

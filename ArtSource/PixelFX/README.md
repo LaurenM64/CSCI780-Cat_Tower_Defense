@@ -30,3 +30,5 @@ Regenerate additions:
     node tools/render.mjs projectiles/seed-shot nature/magical-leaf arcane/energy-ball --sheet --fps 12 --no-actor --bg none --out rendered
 
 Seed: 6 frames, 3 columns, 2 rows. Leaf and orb: 12 frames, 4 columns, 3 rows. The Unity component PixelFxProjectileVisual is presentation only.
+
+Projectile readability update: the grass-line projectile materials use a dedicated sharp black outline and green-halo shader; fire/lightning shaders are unaffected. Bullet Seed's independent ribbon fades over 1 second and Magical Leaf's over 1.5 seconds, including after impact. Energy Ball replaces its ribbon with small leaf sprites emitted every 0.075 seconds, each fading over 1.5 seconds. Leaf ghosts have no colliders or damage scripts. Checks verify material compilation, trail independence/durations, leaf emission/halfway opacity, and unchanged projectile stats.

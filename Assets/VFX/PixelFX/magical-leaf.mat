@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: magical-leaf
-  m_Shader: {fileID: 4800000, guid: 5ed9df51aea93ae4d99c0537b4e04544, type: 3}
+  m_Shader: {fileID: 4800000, guid: 5cf45e6a6f4238747abe5280279baeeb, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
