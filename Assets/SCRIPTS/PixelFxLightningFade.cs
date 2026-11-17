@@ -27,7 +27,7 @@ public class PixelFxLightningFade : MonoBehaviour
                 float width=(cap==0||cap==3)?0f:1f;
                 Vector3 center=Vector3.Lerp(start,end,t);
                 vertices.Add(center-side*width);vertices.Add(center+side*width);
-                uv.Add(new Vector2(t,0));uv.Add(new Vector2(t,1));
+                uv.Add(new Vector2(t,0.5f-0.5f*width));uv.Add(new Vector2(t,0.5f+0.5f*width));
                 if(cap<3){int j=n+cap*2;indices.Add(j);indices.Add(j+1);indices.Add(j+2);indices.Add(j+2);indices.Add(j+1);indices.Add(j+3);}
             }
         }
