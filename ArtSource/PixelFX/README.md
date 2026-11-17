@@ -22,3 +22,11 @@ Fire blending update: ticks refresh a single continuous stream instead of layeri
 Directional trail update: fire emission now runs continuously while a target is acquired, independently of damage ticks. A bounded direction history drives 24 radial flame layers: near-mouth layers follow the model now, while layers at maximum range retain the direction from 0.65 seconds earlier. These layers form one animated, bending mesh (625 vertices), rather than detached rigid cones. The last emission still holds for 1 second before fading over 0.35 seconds. Damage cones and all attack stats remain unchanged.
 
 Visual overshoot update: flames extend to 140% of the damage radius, with vertex opacity fading only beyond the actual range. Direction history delay reaches just 0.08 seconds at the damage boundary, then increases through the cosmetic tail to 0.43 seconds at its tip. Actual attack geometry and stats are unchanged.
+
+Grass projectile visuals: BulletSeed uses a simple bright seed-shot sheet, MagicalLeaf uses a spinning leaf adapted from nature/_lib.js drawLeaf, and EnergyBall adapts arcane-orb's glass/swirl/rings with a green palette plus three orbiting leaves. The source orb's floor glow is removed. All use camera-facing quads and short green trails, with the old sphere renderer disabled. Movement scripts, collider sizes, damage and pierce limits are unchanged.
+
+Regenerate additions:
+
+    node tools/render.mjs projectiles/seed-shot nature/magical-leaf arcane/energy-ball --sheet --fps 12 --no-actor --bg none --out rendered
+
+Seed: 6 frames, 3 columns, 2 rows. Leaf and orb: 12 frames, 4 columns, 3 rows. The Unity component PixelFxProjectileVisual is presentation only.

@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4192647826632475815}
   - component: {fileID: 6335176323185296907}
   - component: {fileID: 4374235265477760961}
+  - component: {fileID: 1222727116485467134}
   m_Layer: 0
   m_Name: EnergyBall
   m_TagString: Untagged
@@ -52,7 +53,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2597346932174952137}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -276,3 +277,23 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
+--- !u!114 &1222727116485467134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2597346932174952137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 660bdcff8a3761b44b6bb590da0dab9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PixelFxProjectileVisual
+  material: {fileID: 2100000, guid: 0fdab5261c1bb3a4eaf04d286c5f1123, type: 2}
+  trailMaterial: {fileID: 2100000, guid: 3684a8a874e74b042973c923f948b9b5, type: 2}
+  columns: 4
+  rows: 3
+  frames: 12
+  worldSize: 0.95
+  trailSeconds: 0.045
+  trailWidth: 0.065
