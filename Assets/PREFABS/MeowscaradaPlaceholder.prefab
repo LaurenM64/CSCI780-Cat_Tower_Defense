@@ -104,6 +104,7 @@ GameObject:
   - component: {fileID: 4373956436303372153}
   - component: {fileID: 6944710981835796222}
   - component: {fileID: 8460025528145033629}
+  - component: {fileID: 8842894475020559818}
   m_Layer: 7
   m_Name: MeowscaradaPlaceholder
   m_TagString: Untagged
@@ -170,7 +171,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 6.7
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4373956436303372153
 MonoBehaviour:
@@ -190,8 +191,12 @@ MonoBehaviour:
   bulletSpeed: 20
   lightningDamage: 2
   maxChainTargets: 3
+  unlimitedBranchingChain: 0
+  paralyzeAllChainTargets: 0
   chainRadius: 4
   lineRenderer: {fileID: 0}
+  strongestTargetParalysisDuration: 0
+  paralysisEveryNAttacks: 1
 --- !u!114 &6944710981835796222
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,6 +228,23 @@ MonoBehaviour:
   spikePrefab: {fileID: 6136098027689055380, guid: 8aedf65e90a1df047884edd623658e87, type: 3}
   deployInterval: 2
   maxSpikes: 5
+--- !u!114 &8842894475020559818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5108318424914946450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f31355cebc591c499c0d1211665c242, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerFacing
+  model: {fileID: 3628739167901365499}
+  turnSpeedDegreesPerSecond: 720
+  neutralLocalPosition: {x: -0, y: 0.009746371, z: 0.001848251}
+  neutralLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  poseInitialized: 1
 --- !u!1001 &3877993391336968976
 PrefabInstance:
   m_ObjectHideFlags: 0

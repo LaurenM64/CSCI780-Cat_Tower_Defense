@@ -25,6 +25,8 @@ public class IncineroarFakeOut : MonoBehaviour
         if (wave == null || wave.State != EnemySpawner.WaveState.Running || lastUsedWave == wave.WaveNumber
             || enemy == null || enemy.IsDead) return;
         lastUsedWave = wave.WaveNumber;
+        var facing = GetComponent<TowerFacing>();
+        if (facing != null) facing.FaceDirection(enemy.transform.position - transform.position);
         if (impactPrefab != null)
         {
             var effect = Instantiate(impactPrefab, enemy.transform.position + Vector3.up * 0.5f, Quaternion.identity);

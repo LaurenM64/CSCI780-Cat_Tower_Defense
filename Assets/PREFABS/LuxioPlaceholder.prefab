@@ -46,6 +46,7 @@ GameObject:
   - component: {fileID: 3386698702958701331}
   - component: {fileID: 6293698193846074577}
   - component: {fileID: 4493609917452869378}
+  - component: {fileID: 3450303039683740294}
   m_Layer: 7
   m_Name: LuxioPlaceholder
   m_TagString: Untagged
@@ -112,7 +113,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 4
+  m_Radius: 2
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3386698702958701331
 MonoBehaviour:
@@ -134,7 +135,7 @@ MonoBehaviour:
   maxChainTargets: 6
   unlimitedBranchingChain: 0
   paralyzeAllChainTargets: 0
-  chainRadius: 2
+  chainRadius: 3.5
   lineRenderer: {fileID: 6293698193846074577}
   strongestTargetParalysisDuration: 1.5
   paralysisEveryNAttacks: 2
@@ -264,6 +265,23 @@ MonoBehaviour:
   nextStagePrefab: {fileID: 173979432075157878, guid: a967d87aaa40af94cbec44303c0c0866, type: 3}
   evolutionCost: 5
   earliestWave: 1
+--- !u!114 &3450303039683740294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2827139242656823347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f31355cebc591c499c0d1211665c242, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerFacing
+  model: {fileID: 7487542736759589007}
+  turnSpeedDegreesPerSecond: 720
+  neutralLocalPosition: {x: -0, y: 0.0072054826, z: 0.0652581}
+  neutralLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  poseInitialized: 1
 --- !u!1 &3684184249044380062
 GameObject:
   m_ObjectHideFlags: 0

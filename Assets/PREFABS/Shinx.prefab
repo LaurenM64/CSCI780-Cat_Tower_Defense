@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3777460814696522425}
   - component: {fileID: 3791391485089223507}
   - component: {fileID: 248470437063229460}
+  - component: {fileID: 8052641950152070645}
   m_Layer: 7
   m_Name: Shinx
   m_TagString: Untagged
@@ -80,7 +81,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 4
+  m_Radius: 1.25
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3777460814696522425
 MonoBehaviour:
@@ -102,7 +103,7 @@ MonoBehaviour:
   maxChainTargets: 3
   unlimitedBranchingChain: 0
   paralyzeAllChainTargets: 0
-  chainRadius: 2
+  chainRadius: 3
   lineRenderer: {fileID: 3791391485089223507}
   strongestTargetParalysisDuration: 0
   paralysisEveryNAttacks: 1
@@ -232,6 +233,23 @@ MonoBehaviour:
   nextStagePrefab: {fileID: 2827139242656823347, guid: bcf42740453149f47aff5d06eeb8eb8e, type: 3}
   evolutionCost: 3
   earliestWave: 1
+--- !u!114 &8052641950152070645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1787842053244011605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f31355cebc591c499c0d1211665c242, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerFacing
+  model: {fileID: 1998071709252401989}
+  turnSpeedDegreesPerSecond: 720
+  neutralLocalPosition: {x: -0, y: 0.000032446733, z: 0.041290805}
+  neutralLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  poseInitialized: 1
 --- !u!1 &5609115848103795928
 GameObject:
   m_ObjectHideFlags: 0
