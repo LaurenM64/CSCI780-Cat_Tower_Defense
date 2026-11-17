@@ -11,7 +11,7 @@ Regenerate from this directory with Node 18+ (no install required):
 
 Copy each PNG and JSON to Assets/VFX/PixelFX. Retain Point filtering, no mipmaps, uncompressed RGBA. Fire has 18 frames in a 4-column/5-row atlas; lightning has 6 frames in a 2-column/3-row atlas. The Unity adapter uses these fixed layouts at 12 fps.
 
-The Unity fan maps the fire texture onto the existing attack area. It does not apply damage. Each chain strike creates a single mesh containing all its links, immediately visible, fading over 3 seconds at its original hit positions. Strikes overlap independently. No lights, postprocessing, screen effects or runtime JavaScript are added.
+The Unity fan maps the fire texture onto the existing attack area. It does not apply damage. Each chain strike creates a single mesh containing all its links, immediately visible with a fixed randomly chosen sprite frame and pointed end caps, fading over 1.5 seconds at its original hit positions. Strikes overlap independently. No lights, postprocessing, screen effects or runtime JavaScript are added.
 
 Branch: codex/pixelfx-experiment, based on model-rotation (d79d1a5). Old wedge and LineRenderer references remain as fallback when the PixelFxAttackVisual component/material is removed.
 

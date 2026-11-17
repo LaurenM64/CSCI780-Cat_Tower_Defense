@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PixelFxLightningFade : MonoBehaviour
 {
-    public const float Lifetime = 3f;
+    public const float Lifetime = 1.5f;
     float age;
     Mesh mesh;
     MeshRenderer visual;
@@ -20,21 +20,30 @@ public class PixelFxLightningFade : MonoBehaviour
             Vector3 side=Vector3.Cross(direction.normalized,Vector3.up).normalized*0.4f;
             if(side.sqrMagnitude<0.0001f)side=Vector3.right*0.4f;
             int n=vertices.Count;
-            vertices.Add(start-side);vertices.Add(start+side);vertices.Add(end-side);vertices.Add(end+side);
-            uv.Add(new Vector2(0,0));uv.Add(new Vector2(0,1));uv.Add(new Vector2(1,0));uv.Add(new Vector2(1,1));
-            indices.Add(n);indices.Add(n+1);indices.Add(n+2);indices.Add(n+2);indices.Add(n+1);indices.Add(n+3);
+            // Pointed caps avoid the square ends of a textured quad.
+            for(int cap=0;cap<4;cap++)
+            {
+                float t=cap==0?0f:cap==1?0.06f:cap==2?0.94f:1f;
+                float width=(cap==0||cap==3)?0f:1f;
+                Vector3 center=Vector3.Lerp(start,end,t);
+                vertices.Add(center-side*width);vertices.Add(center+side*width);
+                uv.Add(new Vector2(t,0));uv.Add(new Vector2(t,1));
+                if(cap<3){int j=n+cap*2;indices.Add(j);indices.Add(j+1);indices.Add(j+2);indices.Add(j+2);indices.Add(j+1);indices.Add(j+3);}
+            }
         }
         mesh=new Mesh{name="PixelFX chain links"};mesh.SetVertices(vertices);mesh.SetUVs(0,uv);mesh.SetTriangles(indices,0);mesh.RecalculateBounds();
         gameObject.AddComponent<MeshFilter>().sharedMesh=mesh;
         visual=gameObject.AddComponent<MeshRenderer>();visual.sharedMaterial=material;
         visual.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;visual.receiveShadows=false;
-        PixelFxAttackVisual.ApplyFrame(visual,material,0,2,3,1,ref properties);
+        PixelFxAttackVisual.ApplyFrame(visual,material,Random.Range(0,6),2,3,1,ref properties);
     }
     void Update()
     {
         age+=Time.deltaTime;
         if(age>=Lifetime){Destroy(gameObject);return;}
-        PixelFxAttackVisual.ApplyFrame(visual,material,Mathf.FloorToInt(age*12)%6,2,3,1-age/Lifetime,ref properties);
+        // Only opacity changes: the sprite frame and geometry stay fixed for this strike.
+        properties.SetColor("_Tint",new Color(1,1,1,1-age/Lifetime));
+        visual.SetPropertyBlock(properties);
     }
     void OnDestroy(){if(mesh!=null)Destroy(mesh);}
 }

@@ -74,7 +74,7 @@ public class PixelFxAttackVisual : MonoBehaviour
     public void Lightning(IReadOnlyList<Vector3> points)
     {
         if(lightningMaterial==null || points.Count<2)return;
-        var effect=new GameObject("PixelFX Lightning (3s)");
+        var effect=new GameObject("PixelFX Lightning (1.5s)");
         effect.AddComponent<PixelFxLightningFade>().Initialize(points,lightningMaterial);
     }
 
