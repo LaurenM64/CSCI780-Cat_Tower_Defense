@@ -5,7 +5,14 @@ using System.Collections.Generic;
 [DefaultExecutionOrder(100)]
 public class PixelFxFireBurst : MonoBehaviour
 {
-    public const float TravelSeconds = 0.65f;
+    public const float VisualRangeMultiplier = 1.4f;
+    public const float InRangeTravelSeconds = 0.08f;
+    public const float TravelSeconds = 0.43f;
+    public static float DelayAtRange(float rangeFraction)
+    {
+        if(rangeFraction<=1f)return Mathf.Clamp01(rangeFraction)*InRangeTravelSeconds;
+        return Mathf.Lerp(InRangeTravelSeconds,TravelSeconds,Mathf.Clamp01((rangeFraction-1f)/(VisualRangeMultiplier-1f)));
+    }
     public const float HoldSeconds = 1f;
     public const float FadeSeconds = 0.35f;
     PixelFxAttackVisual visual;

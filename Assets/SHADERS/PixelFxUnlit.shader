@@ -1,6 +1,6 @@
 Shader "Pokemon/PixelFX Unlit"
 {
- Properties { _MainTex("Sheet",2D)="white" {} _Sheet("Frame",Vector)=(1,1,0,0) _Tint("Tint",Color)=(1,1,1,1) _Glow("Soft glow",Float)=0 }
+ Properties { _MainTex("Sheet",2D)="white" {} _Sheet("Frame",Vector)=(1,1,0,0) _Tint("Tint",Color)=(1,1,1,1) _Glow("Soft glow",Float)=0 _TailFade("Use vertex fade",Float)=0 }
  SubShader {
  Tags { "Queue"="Transparent+10" "RenderType"="Transparent" "RenderPipeline"="UniversalPipeline" }
  Pass {
@@ -13,12 +13,12 @@ Shader "Pokemon/PixelFX Unlit"
  #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
  TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
  CBUFFER_START(UnityPerMaterial)
- float4 _Sheet;float4 _Tint;float _Glow;
+ float4 _Sheet;float4 _Tint;float _Glow;float _TailFade;
  float4 _MainTex_TexelSize;
  CBUFFER_END
- struct Attributes{float4 positionOS:POSITION;float2 uv:TEXCOORD0;};
- struct Varyings{float4 positionCS:SV_POSITION;float2 uv:TEXCOORD0;};
- Varyings vert(Attributes v){Varyings o;o.positionCS=TransformObjectToHClip(v.positionOS.xyz);o.uv=v.uv*_Sheet.xy+_Sheet.zw;return o;}
+ struct Attributes{float4 positionOS:POSITION;float2 uv:TEXCOORD0;float4 color:COLOR;};
+ struct Varyings{float4 positionCS:SV_POSITION;float2 uv:TEXCOORD0;float4 color:COLOR;};
+ Varyings vert(Attributes v){Varyings o;o.positionCS=TransformObjectToHClip(v.positionOS.xyz);o.uv=v.uv*_Sheet.xy+_Sheet.zw;o.color=v.color;return o;}
  half4 frag(Varyings i):SV_Target
  {
      half4 c=SAMPLE_TEXTURE2D(_MainTex,sampler_MainTex,i.uv);
@@ -33,6 +33,7 @@ Shader "Pokemon/PixelFX Unlit"
          c.rgb=(c.rgb*c.a*1.25+half3(1,0.38,0.06)*halo)/max(alpha,0.001);
          c.a=alpha;
      }
+     c.a*=lerp(1,i.color.a,_TailFade);
      return c*_Tint;
  }
  ENDHLSL

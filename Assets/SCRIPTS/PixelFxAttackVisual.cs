@@ -9,6 +9,7 @@ public class PixelFxAttackVisual : MonoBehaviour
     MeshRenderer fireRenderer;
     Mesh fireMesh;
     Vector3[] trailVertices;
+    Color[] trailColors;
     const int FireArcs = 24, FireRings = 24;
     MaterialPropertyBlock properties;
     float fireClock;
@@ -76,6 +77,7 @@ public class PixelFxAttackVisual : MonoBehaviour
             }
         }
         trailVertices=vertices;
+        trailColors=new Color[vertices.Length];
         fireMesh=new Mesh {name="PixelFX fire fan"};
         fireMesh.MarkDynamic();
         fireMesh.vertices=vertices;fireMesh.uv=uv;fireMesh.SetTriangles(indices,0);fireMesh.RecalculateBounds();
@@ -90,15 +92,21 @@ public class PixelFxAttackVisual : MonoBehaviour
         for(int r=0;r<=FireRings;r++)
         {
             float radial=(float)r/FireRings;
-            Vector3 aim=trail.DirectionAt(radial*PixelFxFireBurst.TravelSeconds);
+            float distanceInRanges=radial*PixelFxFireBurst.VisualRangeMultiplier;
+            Vector3 aim=trail.DirectionAt(PixelFxFireBurst.DelayAtRange(distanceInRanges));
+            float tail=Mathf.Clamp01((distanceInRanges-1f)/(PixelFxFireBurst.VisualRangeMultiplier-1f));
+            float opacity=1f-Mathf.SmoothStep(0f,1f,tail);
             aim=fireRenderer.transform.InverseTransformDirection(aim);
             for(int a=0;a<=FireArcs;a++)
             {
                 float degrees=((float)a/FireArcs-0.5f)*angle;
-                trailVertices[r*(FireArcs+1)+a]=Quaternion.AngleAxis(degrees,Vector3.up)*aim*range*radial;
+                int index=r*(FireArcs+1)+a;
+                trailVertices[index]=Quaternion.AngleAxis(degrees,Vector3.up)*aim*range*distanceInRanges;
+                trailColors[index]=new Color(1,1,1,opacity);
             }
         }
         fireMesh.vertices=trailVertices;
+        fireMesh.colors=trailColors;
         fireMesh.RecalculateBounds();
     }
 
