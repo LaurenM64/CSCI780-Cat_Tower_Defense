@@ -265,7 +265,7 @@ MonoBehaviour:
   pokemonName: Luxio
   nextStagePrefab: {fileID: 173979432075157878, guid: a967d87aaa40af94cbec44303c0c0866, type: 3}
   evolutionCost: 5
-  earliestWave: 1
+  earliestWave: 3
 --- !u!114 &3450303039683740294
 MonoBehaviour:
   m_ObjectHideFlags: 0

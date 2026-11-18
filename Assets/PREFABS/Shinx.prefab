@@ -233,7 +233,7 @@ MonoBehaviour:
   pokemonName: Shinx
   nextStagePrefab: {fileID: 2827139242656823347, guid: bcf42740453149f47aff5d06eeb8eb8e, type: 3}
   evolutionCost: 3
-  earliestWave: 1
+  earliestWave: 2
 --- !u!114 &8052641950152070645
 MonoBehaviour:
   m_ObjectHideFlags: 0

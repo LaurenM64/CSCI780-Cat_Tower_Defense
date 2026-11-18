@@ -2418,7 +2418,7 @@ MonoBehaviour:
   pokemonName: Litten
   nextStagePrefab: {fileID: 7665646500315028090, guid: 6092124744e962f498bb5d89912408bd, type: 3}
   evolutionCost: 3
-  earliestWave: 1
+  earliestWave: 2
 --- !u!114 &3787546664903193964
 MonoBehaviour:
   m_ObjectHideFlags: 0

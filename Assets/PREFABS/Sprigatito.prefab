@@ -211,7 +211,7 @@ MonoBehaviour:
   pokemonName: Sprigatito
   nextStagePrefab: {fileID: 779938840908549562, guid: dc981ecffc868cf46bd6e2923d889422, type: 3}
   evolutionCost: 2
-  earliestWave: 1
+  earliestWave: 2
 --- !u!114 &8052641950152070645
 MonoBehaviour:
   m_ObjectHideFlags: 0

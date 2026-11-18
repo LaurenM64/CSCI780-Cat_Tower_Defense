@@ -2598,7 +2598,7 @@ MonoBehaviour:
   pokemonName: Torracat
   nextStagePrefab: {fileID: 7202647599070069434, guid: 5e339ce1fd425fc4182bb57c9ad6d792, type: 3}
   evolutionCost: 6
-  earliestWave: 1
+  earliestWave: 3
 --- !u!114 &5826796087258558244
 MonoBehaviour:
   m_ObjectHideFlags: 0

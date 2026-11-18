@@ -3932,7 +3932,7 @@ MonoBehaviour:
   spawnRate: 1
   startingCoins: 5
   waveOneReward: 10
-  waveTwoReward: 20
+  waveTwoReward: 15
   waveThreeReward: 20
   coinLabel: {fileID: 2055219873}
   buyButtonRect: {fileID: 1548755493}

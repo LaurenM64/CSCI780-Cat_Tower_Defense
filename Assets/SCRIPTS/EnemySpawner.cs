@@ -16,7 +16,7 @@ public class EnemySpawner : MonoBehaviour
     public float spawnRate = 2f;
     public int startingCoins = 5;
     public int waveOneReward = 10;
-    public int waveTwoReward = 20;
+    public int waveTwoReward = 15;
     public int waveThreeReward = 20;
     public int Coins { get; private set; }
     public TMP_Text coinLabel;

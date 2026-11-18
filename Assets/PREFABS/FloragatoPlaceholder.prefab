@@ -121,7 +121,7 @@ MonoBehaviour:
   pokemonName: Floragato
   nextStagePrefab: {fileID: 5108318424914946450, guid: 468f4e74060b21b4ab1016d0cc7aa736, type: 3}
   evolutionCost: 5
-  earliestWave: 1
+  earliestWave: 3
 --- !u!114 &3000623867560474069
 MonoBehaviour:
   m_ObjectHideFlags: 0
