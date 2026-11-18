@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class TowerDetailsPanel : MonoBehaviour
 {
+    [Header("UI References")]
+    public TMPro.TMP_Text infoLabel; // Slot for your new text component
+    
     private UnityEngine.UI.Button removeTowerButton;
     public UnityEngine.UI.Button evolveButton;
     public TMPro.TMP_Text evolveLabel;
@@ -42,11 +45,19 @@ public class TowerDetailsPanel : MonoBehaviour
     void RefreshEvolutionButton()
     {
         if (removeTowerButton != null)
+        {
+            // Hide the remove button entirely if nothing is selected
+            removeTowerButton.gameObject.SetActive(SelectedTower != null);
             removeTowerButton.interactable = SelectedTower != null && wave.State == EnemySpawner.WaveState.PreWave;
+        }
+        
         if (evolveButton == null || evolveLabel == null) return;
         var evolution = SelectedTower != null ? SelectedTower.GetComponent<TowerEvolution>() : null;
         bool available = evolution != null && evolution.CanEvolve;
         evolveButton.gameObject.SetActive(SelectedTower != null && evolution != null);
+        
+        if (SelectedTower == null) return; // Stop processing if empty
+        
         evolveButton.interactable = available && evolution.IsUnlocked(wave) && wave.State == EnemySpawner.WaveState.PreWave;
         if (!available) { evolveLabel.text = "Fully evolved"; return; }
         var next = evolution.nextStagePrefab.GetComponent<TowerEvolution>();
@@ -195,7 +206,10 @@ public class TowerDetailsPanel : MonoBehaviour
             hover.viewer = this;
         }
         removeTowerButton = transform.Find("RemoveSelectedTower").GetComponent<UnityEngine.UI.Button>();
-        panel.anchoredPosition = new Vector2(panel.rect.width + 20f, 0f);
+        
+        // Ensure the panel starts completely visible on screen
+        panel.anchoredPosition = Vector2.zero;
+        if (infoLabel != null) infoLabel.text = "Click a tower to see details";
     }
 
     public void Show(GameObject tower)
@@ -207,6 +221,8 @@ public class TowerDetailsPanel : MonoBehaviour
         HighlightFootprint(tower);
         ShowRange(tower);
         transform.SetAsLastSibling();
+        
+        UpdateInfoText(tower);
         RefreshEvolutionButton();
     }
 
@@ -217,6 +233,40 @@ public class TowerDetailsPanel : MonoBehaviour
         ClearOutline();
         SelectedTower = null;
         IsOpen = false;
+        
+        if (infoLabel != null) infoLabel.text = "Click a tower to see details";
+        RefreshEvolutionButton(); // This will hide the buttons
+    }
+
+    void UpdateInfoText(GameObject tower)
+    {
+        if (infoLabel == null || tower == null) return;
+        string tName = tower.name.ToLower();
+
+        if (tName.Contains("sprigatito"))
+            infoLabel.text = "<b>SPRIGATITO</b>\nType: Grass\nDamage: Single\nMove: Bullet Seed\nSpeed: Slow\nSpecial: None";
+        else if (tName.Contains("floragato"))
+            infoLabel.text = "<b>FLORAGATO</b>\nType: Grass\nDamage: Piercing\nMove: Magical Leaf\nSpeed: Slow\nSpecial: Pierces 2 enemies";
+        else if (tName.Contains("meowscarada"))
+            infoLabel.text = "<b>MEOWSCARADA</b>\nType: Grass/Dark\nDamage: Piercing\nMove: Energy Ball\nSpeed: Medium\nSpecial: Pierces 4 enemies, sets Toxic Spikes";
+        else if (tName.Contains("litten"))
+            infoLabel.text = "<b>LITTEN</b>\nType: Fire\nDamage: Spread\nMove: Flamethrower\nSpeed: Continuous\nSpecial: None";
+        else if (tName.Contains("torracat"))
+            infoLabel.text = "<b>TORRACAT</b>\nType: Fire\nDamage: Spread\nMove: Heat Wave\nSpeed: Continuous\nSpecial: None";
+        else if (tName.Contains("incineroar"))
+            infoLabel.text = "<b>INCINEROAR</b>\nType: Fire/Dark\nDamage: Spread\nMove: Flare Blitz\nSpeed: Continuous\nSpecial: Uses Fake Out";
+        else if (tName.Contains("shinx"))
+            infoLabel.text = "<b>SHINX</b>\nType: Electric\nDamage: Chain Lightning\nMove: Shock Wave\nSpeed: Slow\nSpecial: Chains 3 enemies";
+        else if (tName.Contains("luxio") || tName.Contains("luxray"))
+        {
+            // Checks if it's the final evolution stage (since the graphic labeled the 3rd stage "Luxio" as well)
+            if (tName.Contains("luxray") || tower.GetComponent<TowerEvolution>() == null)
+                infoLabel.text = "<b>LUXRAY</b>\nType: Electric\nDamage: Chain Lightning\nMove: Thunderbolt\nSpeed: Slow\nSpecial: Unlimited Chains / 0.5s Paralyze ALL";
+            else
+                infoLabel.text = "<b>LUXIO</b>\nType: Electric\nDamage: Chain Lightning\nMove: Discharge\nSpeed: Slow\nSpecial: Chains 6 / Paralyzes every other hit for 1.5s";
+        }
+        else
+            infoLabel.text = "<b>" + tower.name.Replace("(Clone)", "") + "</b>\nNo data available.";
     }
 
     void LateUpdate()
@@ -238,8 +288,10 @@ public class TowerDetailsPanel : MonoBehaviour
     {
         RefreshEvolutionButton();
         if (IsOpen && SelectedTower == null) Close();
+        
+        // Target is now permanently 0f so the panel stays fixed on screen
         float width = panel.rect.width + 20f;
-        float target = IsOpen ? 0f : width;
+        float target = 0f; 
         panel.anchoredPosition = new Vector2(Mathf.MoveTowards(panel.anchoredPosition.x,
             target, width * Time.unscaledDeltaTime / Mathf.Max(0.01f, slideDuration)), 0f);
     }
