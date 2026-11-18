@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Splines;
+using UnityEngine.SceneManagement; // Added for UI Restart
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -24,6 +25,10 @@ public class EnemySpawner : MonoBehaviour
 
     public TMP_Text centerMessageText;
     public GameObject gameOverOverlay;
+    
+    [Header("UI Panels")]
+    public GameObject startMenuPanel;
+    public GameObject instructionsPanel;
 
     public void AddCoins(int amount)
     {
@@ -55,7 +60,17 @@ public class EnemySpawner : MonoBehaviour
     public event System.Action<EnemyHealth> FirstNonRattataLeftSpawn;
     private bool fakeOutTargetChosen;
 
-    void Start() { Coins = startingCoins; UpdateUI(); }
+    void Start() 
+    { 
+        Coins = startingCoins; 
+        
+        // Show start menu and pause on boot
+        if (startMenuPanel != null) startMenuPanel.SetActive(true);
+        if (instructionsPanel != null) instructionsPanel.SetActive(false);
+        Time.timeScale = 0f;
+        
+        UpdateUI(); 
+    }
 
     void LateUpdate()
     {
@@ -169,33 +184,33 @@ public class EnemySpawner : MonoBehaviour
 
     void Update()
     {
-    if (State != WaveState.Running) return;
+        if (State != WaveState.Running) return;
 
-    CheckFakeOutTarget();
+        CheckFakeOutTarget();
 
-    enemies.RemoveAll(enemy => enemy == null);
+        enemies.RemoveAll(enemy => enemy == null);
 
-    if (SpawnedCount == CurrentWaveSize && enemies.Count == 0)
-    {
-        if (IsBossStage)
+        if (SpawnedCount == CurrentWaveSize && enemies.Count == 0)
         {
-            State = WaveState.Won;
-            StartCoroutine(FlashCenterMessage("BOSS STAGE CLEARED!", 5f));
-            UpdateUI();
-            return;
-        }
-        // Flash the victory message for the current wave.
-        statusLabel.text = "PLANNING PHASE";
-        StartCoroutine(FlashCenterMessage("WAVE " + WaveNumber + " COMPLETED!", 5f));
+            if (IsBossStage)
+            {
+                State = WaveState.Won;
+                StartCoroutine(FlashCenterMessage("BOSS STAGE CLEARED!", 5f));
+                UpdateUI();
+                return;
+            }
+            // Flash the victory message for the current wave.
+            statusLabel.text = "PLANNING PHASE";
+            StartCoroutine(FlashCenterMessage("WAVE " + WaveNumber + " COMPLETED!", 5f));
 
-        // 2. Hasan's transition logic
-        State = WaveState.PreWave;
-        if (WaveNumber == 1) Coins += waveOneReward;
-        else if (WaveNumber == 2) Coins += waveTwoReward;
-        else if (WaveNumber == 3) Coins += waveThreeReward;
-        WaveNumber++;
-        UpdateUI();
-    }
+            // 2. Hasan's transition logic
+            State = WaveState.PreWave;
+            if (WaveNumber == 1) Coins += waveOneReward;
+            else if (WaveNumber == 2) Coins += waveTwoReward;
+            else if (WaveNumber == 3) Coins += waveThreeReward;
+            WaveNumber++;
+            UpdateUI();
+        }
     }
 
     void CheckFakeOutTarget()
@@ -250,16 +265,42 @@ public class EnemySpawner : MonoBehaviour
                 WaveNumber <= 4 ? "PLANNING PHASE" : "All stages completed";
     }
 
-
-
     public IEnumerator FlashCenterMessage(string message, float duration = 5f)
-        {
-            if (centerMessageText == null) yield break;
-            centerMessageText.text = message;
-            centerMessageText.gameObject.SetActive(true);
-            yield return new WaitForSeconds(duration);
-            if (centerMessageText != null) centerMessageText.gameObject.SetActive(false);
-        }
+    {
+        if (centerMessageText == null) yield break;
+        centerMessageText.text = message;
+        centerMessageText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(duration);
+        if (centerMessageText != null) centerMessageText.gameObject.SetActive(false);
+    }
+
+    // --- NEW UI METHODS FOR BUTTONS ---
+
+    public void StartNewGame()
+    {
+        if (startMenuPanel != null) startMenuPanel.SetActive(false);
+        Time.timeScale = 1f; 
+    }
+
+    public void ShowInstructions()
+    {
+        if (instructionsPanel != null) instructionsPanel.SetActive(true);
+    }
+
+    public void HideInstructions()
+    {
+        if (instructionsPanel != null) instructionsPanel.SetActive(false);
+    }
+
+    public void RestartLevel()
+    {
+        Time.timeScale = 1f; 
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void QuitGame()
+    {
+        Debug.Log("Game Quit!"); 
+        Application.Quit(); 
+    }
 }
-
-
