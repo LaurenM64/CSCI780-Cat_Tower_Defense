@@ -60,14 +60,27 @@ public class EnemySpawner : MonoBehaviour
     public event System.Action<EnemyHealth> FirstNonRattataLeftSpawn;
     private bool fakeOutTargetChosen;
 
+    private static bool skipMenuOnLoad = false;
+
     void Start() 
     { 
         Coins = startingCoins; 
         
-        // Show start menu and pause on boot
-        if (startMenuPanel != null) startMenuPanel.SetActive(true);
-        if (instructionsPanel != null) instructionsPanel.SetActive(false);
-        Time.timeScale = 0f;
+        if (skipMenuOnLoad)
+        {
+            // We just clicked Retry! Skip the menu and unpause.
+            if (startMenuPanel != null) startMenuPanel.SetActive(false);
+            if (instructionsPanel != null) instructionsPanel.SetActive(false);
+            Time.timeScale = 1f;
+            skipMenuOnLoad = false; // Reset the memory for next time
+        }
+        else
+        {
+            // Normal boot or we just clicked Quit. Show menu and pause.
+            if (startMenuPanel != null) startMenuPanel.SetActive(true);
+            if (instructionsPanel != null) instructionsPanel.SetActive(false);
+            Time.timeScale = 0f;
+        }
         
         UpdateUI(); 
     }
@@ -294,13 +307,30 @@ public class EnemySpawner : MonoBehaviour
 
     public void RestartLevel()
     {
+        // 1. Destroy all enemies currently on the track
+        foreach (GameObject enemy in enemies)
+        {
+            if (enemy != null) Destroy(enemy);
+        }
+        enemies.Clear();
+        nonRattataEnemies.Clear();
+        SpawnedCount = 0;
+        
+        // 2. Reset the state back to the Planning Phase for the current wave
+        State = WaveState.PreWave;
+        
+        // 3. Hide the Game Over screen and unpause time
+        if (gameOverOverlay != null) gameOverOverlay.SetActive(false);
         Time.timeScale = 1f; 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        
+        UpdateUI();
     }
 
     public void QuitGame()
     {
-        Debug.Log("Game Quit!"); 
-        Application.Quit(); 
+        // Tell the scene to show the title screen when it reloads
+        skipMenuOnLoad = false; 
+        Time.timeScale = 1f; 
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
