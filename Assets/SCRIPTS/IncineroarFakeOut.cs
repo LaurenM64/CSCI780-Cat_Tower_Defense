@@ -30,7 +30,9 @@ public class IncineroarFakeOut : MonoBehaviour
         if (impactPrefab != null)
         {
             var effect = Instantiate(impactPrefab, enemy.transform.position + Vector3.up * 0.5f, Quaternion.identity);
-            Destroy(effect, 0.3f);
+            var clap=effect.GetComponent<FakeOutClapEffect>();
+            if(clap!=null)clap.Initialize(enemy);
+            else Destroy(effect, 0.3f);
         }
         enemy.TakeDamage(damage);
         if (enemy.IsDead) return;
