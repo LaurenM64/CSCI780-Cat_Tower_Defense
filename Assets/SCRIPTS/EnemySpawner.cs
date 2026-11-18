@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Splines;
+using UnityEngine.SceneManagement; // Added for UI Restart
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -24,6 +25,10 @@ public class EnemySpawner : MonoBehaviour
 
     public TMP_Text centerMessageText;
     public GameObject gameOverOverlay;
+    
+    [Header("UI Panels")]
+    public GameObject startMenuPanel;
+    public GameObject instructionsPanel;
 
     public void AddCoins(int amount)
     {
@@ -55,7 +60,30 @@ public class EnemySpawner : MonoBehaviour
     public event System.Action<EnemyHealth> FirstNonRattataLeftSpawn;
     private bool fakeOutTargetChosen;
 
-    void Start() { Coins = startingCoins; UpdateUI(); }
+    private static bool skipMenuOnLoad = false;
+
+    void Start() 
+    { 
+        Coins = startingCoins; 
+        
+        if (skipMenuOnLoad)
+        {
+            // We just clicked Retry! Skip the menu and unpause.
+            if (startMenuPanel != null) startMenuPanel.SetActive(false);
+            if (instructionsPanel != null) instructionsPanel.SetActive(false);
+            Time.timeScale = 1f;
+            skipMenuOnLoad = false; // Reset the memory for next time
+        }
+        else
+        {
+            // Normal boot or we just clicked Quit. Show menu and pause.
+            if (startMenuPanel != null) startMenuPanel.SetActive(true);
+            if (instructionsPanel != null) instructionsPanel.SetActive(false);
+            Time.timeScale = 0f;
+        }
+        
+        UpdateUI(); 
+    }
 
     void LateUpdate()
     {
@@ -169,33 +197,33 @@ public class EnemySpawner : MonoBehaviour
 
     void Update()
     {
-    if (State != WaveState.Running) return;
+        if (State != WaveState.Running) return;
 
-    CheckFakeOutTarget();
+        CheckFakeOutTarget();
 
-    enemies.RemoveAll(enemy => enemy == null);
+        enemies.RemoveAll(enemy => enemy == null);
 
-    if (SpawnedCount == CurrentWaveSize && enemies.Count == 0)
-    {
-        if (IsBossStage)
+        if (SpawnedCount == CurrentWaveSize && enemies.Count == 0)
         {
-            State = WaveState.Won;
-            StartCoroutine(FlashCenterMessage("BOSS STAGE CLEARED!", 5f));
-            UpdateUI();
-            return;
-        }
-        // Flash the victory message for the current wave.
-        statusLabel.text = "PLANNING PHASE";
-        StartCoroutine(FlashCenterMessage("WAVE " + WaveNumber + " COMPLETED!", 5f));
+            if (IsBossStage)
+            {
+                State = WaveState.Won;
+                StartCoroutine(FlashCenterMessage("BOSS STAGE CLEARED!", 5f));
+                UpdateUI();
+                return;
+            }
+            // Flash the victory message for the current wave.
+            statusLabel.text = "PLANNING PHASE";
+            StartCoroutine(FlashCenterMessage("WAVE " + WaveNumber + " COMPLETED!", 5f));
 
-        // 2. Hasan's transition logic
-        State = WaveState.PreWave;
-        if (WaveNumber == 1) Coins += waveOneReward;
-        else if (WaveNumber == 2) Coins += waveTwoReward;
-        else if (WaveNumber == 3) Coins += waveThreeReward;
-        WaveNumber++;
-        UpdateUI();
-    }
+            // 2. Hasan's transition logic
+            State = WaveState.PreWave;
+            if (WaveNumber == 1) Coins += waveOneReward;
+            else if (WaveNumber == 2) Coins += waveTwoReward;
+            else if (WaveNumber == 3) Coins += waveThreeReward;
+            WaveNumber++;
+            UpdateUI();
+        }
     }
 
     void CheckFakeOutTarget()
@@ -250,16 +278,59 @@ public class EnemySpawner : MonoBehaviour
                 WaveNumber <= 4 ? "PLANNING PHASE" : "All stages completed";
     }
 
-
-
     public IEnumerator FlashCenterMessage(string message, float duration = 5f)
+    {
+        if (centerMessageText == null) yield break;
+        centerMessageText.text = message;
+        centerMessageText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(duration);
+        if (centerMessageText != null) centerMessageText.gameObject.SetActive(false);
+    }
+
+    // --- NEW UI METHODS FOR BUTTONS ---
+
+    public void StartNewGame()
+    {
+        if (startMenuPanel != null) startMenuPanel.SetActive(false);
+        Time.timeScale = 1f; 
+    }
+
+    public void ShowInstructions()
+    {
+        if (instructionsPanel != null) instructionsPanel.SetActive(true);
+    }
+
+    public void HideInstructions()
+    {
+        if (instructionsPanel != null) instructionsPanel.SetActive(false);
+    }
+
+    public void RestartLevel()
+    {
+        // 1. Destroy all enemies currently on the track
+        foreach (GameObject enemy in enemies)
         {
-            if (centerMessageText == null) yield break;
-            centerMessageText.text = message;
-            centerMessageText.gameObject.SetActive(true);
-            yield return new WaitForSeconds(duration);
-            if (centerMessageText != null) centerMessageText.gameObject.SetActive(false);
+            if (enemy != null) Destroy(enemy);
         }
+        enemies.Clear();
+        nonRattataEnemies.Clear();
+        SpawnedCount = 0;
+        
+        // 2. Reset the state back to the Planning Phase for the current wave
+        State = WaveState.PreWave;
+        
+        // 3. Hide the Game Over screen and unpause time
+        if (gameOverOverlay != null) gameOverOverlay.SetActive(false);
+        Time.timeScale = 1f; 
+        
+        UpdateUI();
+    }
+
+    public void QuitGame()
+    {
+        // Tell the scene to show the title screen when it reloads
+        skipMenuOnLoad = false; 
+        Time.timeScale = 1f; 
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
 }
-
-
