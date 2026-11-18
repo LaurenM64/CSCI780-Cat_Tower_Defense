@@ -2,7 +2,7 @@
 
 Branch: experimental-environment, based on submission-ready main 8b9d4d7.
 
-- Reframed camera in orthographic view to keep the unchanged full-size Raticate visible. Offline check sampled 65 positions along the existing spline, using its travel direction.
+- Restored the original 67.2-degree tilt / 0.344-degree yaw and 60-degree perspective, with camera moved back for wide framing to keep the unchanged full-size Raticate visible. Offline check sampled 65 positions along the existing spline, using its travel direction.
 - Hid all four wall renderers, retaining their original enabled colliders, layers and placement clearance.
 - Added a continuous visual grass plane, without a collider or buildable tag. Main playable ground and spline colliders remain unchanged. ContinuousGrass.shader preserves the existing red/white/black track pixels over a shared procedural grass field, removing the original rectangular texture seams.
 - Created two original low-poly tree prototypes in Blender; 87 tree instances are baked into one forest mesh with 3 material slots. No tree physics, scripts, per-tree updates or external asset pack dependency. Openings at spawn and goal prevent nearby trees hiding the boss/end zone.
